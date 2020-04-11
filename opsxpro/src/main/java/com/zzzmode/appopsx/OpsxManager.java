@@ -16,6 +16,7 @@ import com.zzzmode.appopsx.common.PackageOps;
 import com.zzzmode.appopsx.common.SystemServiceCaller;
 import com.zzzmode.appopsx.remote.AppOpsHandler;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class OpsxManager {
 
   private Context mContext;
 
-  private LocalServerManager mLocalServerManager;
+  // private LocalServerManager mLocalServerManager;
 
   private int mUserHandleId;
 
@@ -46,44 +47,44 @@ public class OpsxManager {
     mContext = context;
     config.context = mContext;
     mUserHandleId = Process.myUid() / 100000; //android.os.UserHandle.myUserId()
-    SConfig.init(context, mUserHandleId);
+    // SConfig.init(context, mUserHandleId);
     userId = mUserHandleId;
-    mLocalServerManager = LocalServerManager.getInstance(config);
-    apiSupporter = new ApiSupporter(mLocalServerManager);
+    // mLocalServerManager = LocalServerManager.getInstance(config);
+    // apiSupporter = new ApiSupporter(mLocalServerManager);
+    apiSupporter = new ApiSupporter();
     pkgName = context.getPackageName();
-    checkFile();
+    // checkFile();
   }
 
   public void setUserHandleId(int uid) {
     this.userId = uid;
   }
 
-  public void updateConfig(Config config) {
-    mLocalServerManager.updateConfig(config);
-  }
+//  public void updateConfig(Config config) {
+//    mLocalServerManager.updateConfig(config);
+//  }
 
   public Config getConfig() {
-    return mLocalServerManager.getConfig();
+    // return mLocalServerManager.getConfig();
+    return new Config();
   }
 
-  private void checkFile() {
-    //AssetsUtils.copyFile(mContext,"appopsx",new File(mContext.getDir(DIR_NAME,Context.MODE_PRIVATE),"appopsx"),false);
-    AssetsUtils.copyFile(mContext, SConfig.JAR_NAME, SConfig.getDestJarFile(), BuildConfig.DEBUG);
-    AssetsUtils.writeScript(getConfig());
-  }
+//  private void checkFile() {
+//    //AssetsUtils.copyFile(mContext,"appopsx",new File(mContext.getDir(DIR_NAME,Context.MODE_PRIVATE),"appopsx"),false);
+//    AssetsUtils.copyFile(mContext, SConfig.JAR_NAME, SConfig.getDestJarFile(), BuildConfig.DEBUG);
+//    AssetsUtils.writeScript(getConfig());
+//  }
 
-  private synchronized void checkConnect() throws Exception {
-    mLocalServerManager.start();
-  }
+//  private synchronized void checkConnect() throws Exception {
+//    mLocalServerManager.start();
+//  }
 
   public OpsResult getOpsForPackage(final String packageName) throws Exception {
-    checkConnect();
+    // checkConnect();
     OpsCommands.Builder builder = new OpsCommands.Builder();
     builder.setAction(OpsCommands.ACTION_GET);
     builder.setPackageName(packageName);
     builder.setUserHandleId(userId);
-
-
     return wrapOps(builder);
   }
 
@@ -92,13 +93,15 @@ public class OpsxManager {
     Bundle bundle = new Bundle();
     bundle.putParcelable("args",builder);
     ClassCaller classCaller = new ClassCaller(pkgName,AppOpsHandler.class.getName(),bundle);
-    CallerResult result = mLocalServerManager.execNew(classCaller);
-    Bundle replyBundle = result.getReplyBundle();
-    return replyBundle.getParcelable("return");
+    // CallerResult result = mLocalServerManager.execNew(classCaller);
+    // Bundle replyBundle = result.getReplyBundle();
+    // return replyBundle.getParcelable("return");
+    // TODO: Implement this
+    return new OpsResult(new ArrayList<PackageOps>(), null);
   }
 
   public OpsResult getPackagesForOps(int[] ops,boolean reqNet)throws Exception{
-    checkConnect();
+    // checkConnect();
     OpsCommands.Builder builder = new OpsCommands.Builder();
     builder.setAction(OpsCommands.ACTION_GET_FOR_OPS);
     builder.setOps(ops);
@@ -108,7 +111,7 @@ public class OpsxManager {
   }
 
   public OpsResult setOpsMode(String packageName, int opInt, int modeInt) throws Exception {
-    checkConnect();
+    // checkConnect();
     OpsCommands.Builder builder = new OpsCommands.Builder();
     builder.setAction(OpsCommands.ACTION_SET);
     builder.setPackageName(packageName);
@@ -126,20 +129,20 @@ public class OpsxManager {
     return wrapOps(builder);
   }
 
-
-
   public ApiSupporter getApiSupporter() {
     return apiSupporter;
   }
 
-  public void destory() {
-    if (mLocalServerManager != null) {
-      mLocalServerManager.stop();
-    }
-  }
+//  public void destory() {
+//    if (mLocalServerManager != null) {
+//      mLocalServerManager.stop();
+//    }
+//  }
 
   public boolean isRunning() {
-    return mLocalServerManager != null && mLocalServerManager.isRunning();
+    // return mLocalServerManager != null && mLocalServerManager.isRunning();
+    // TODO: Implement this
+    return true;
   }
 
   public OpsResult disableAllPermission(final String packageName) throws Exception {
@@ -168,11 +171,11 @@ public class OpsxManager {
 
 
   public void closeBgServer() {
-    if(mLocalServerManager != null){
-      mLocalServerManager.closeBgServer();
-      mLocalServerManager.stop();
-    }
-
+//    if(mLocalServerManager != null){
+//      mLocalServerManager.closeBgServer();
+//      mLocalServerManager.stop();
+//    }
+    // TODO: Implement unlink binder, if necessary
   }
 
   public static boolean isEnableSELinux() {

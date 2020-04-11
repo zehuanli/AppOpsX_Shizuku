@@ -15,55 +15,56 @@ public class ApiSupporter {
 
   private static final String TAG = "ApiSupporter";
 
-  private LocalServerManager localServerManager;
+  // private LocalServerManager localServerManager;
 
-  ApiSupporter(LocalServerManager localServerManager) {
-    this.localServerManager = localServerManager;
-  }
+//  ApiSupporter(LocalServerManager localServerManager) {
+//    this.localServerManager = localServerManager;
+//  }
 
-  private void checkConnection() throws Exception {
-    localServerManager.start();
-  }
+//  private void checkConnection() throws Exception {
+//    localServerManager.start();
+//  }
 
   public List<PackageInfo> getInstalledPackages(int flags,int uid) throws Exception {
-    checkConnection();
+    // checkConnection();
     SystemServiceCaller caller = new SystemServiceCaller("package","getInstalledPackages",new Class[]{int.class,int.class},new Object[]{flags,uid});
-    CallerResult callerResult = localServerManager.execNew(caller);
-    callerResult.getReplyObj();
-    if(callerResult.getThrowable() != null){
-      throw new Exception(callerResult.getThrowable());
-    }else {
-      Object replyObj = callerResult.getReplyObj();
-      if(replyObj instanceof List){
-        return ((List<PackageInfo>) replyObj);
-      }
-    }
-
+//    CallerResult callerResult = localServerManager.execNew(caller);
+//    callerResult.getReplyObj();
+//    if(callerResult.getThrowable() != null){
+//      throw new Exception(callerResult.getThrowable());
+//    }else {
+//      Object replyObj = callerResult.getReplyObj();
+//      if(replyObj instanceof List){
+//        return ((List<PackageInfo>) replyObj);
+//      }
+//    }
+    // TODO: Implement this
     return null;
   }
 
   public List<UserInfo> getUsers(boolean excludeDying) throws Exception {
-    checkConnection();
+    // checkConnection();
     SystemServiceCaller caller = new SystemServiceCaller(
         Context.USER_SERVICE,"getUsers",new Class[]{boolean.class},new Object[]{excludeDying});
-    CallerResult callerResult = localServerManager.execNew(caller);
-    callerResult.getReplyObj();
-    if(callerResult.getThrowable() != null){
-      throw new Exception(callerResult.getThrowable());
-    } else {
-      Object replyObj = callerResult.getReplyObj();
-      if(replyObj instanceof List){
-        return ((List<UserInfo>) replyObj);
-      }
-    }
+//    CallerResult callerResult = localServerManager.execNew(caller);
+//    callerResult.getReplyObj();
+//    if(callerResult.getThrowable() != null){
+//      throw new Exception(callerResult.getThrowable());
+//    } else {
+//      Object replyObj = callerResult.getReplyObj();
+//      if(replyObj instanceof List){
+//        return ((List<UserInfo>) replyObj);
+//      }
+//    }
+    // TODO: Implement this
     return null;
   }
 
 
-  public void restartServer(Context context) throws Exception {
-    ClassCaller classCaller = new ClassCaller(context.getPackageName(), RestartHandler.class.getName(),new Bundle());
-    CallerResult result = localServerManager.execNew(classCaller);
-    Log.e(TAG, "restartServer --> "+result);
-  }
+//  public void restartServer(Context context) throws Exception {
+//    ClassCaller classCaller = new ClassCaller(context.getPackageName(), RestartHandler.class.getName(),new Bundle());
+//    CallerResult result = localServerManager.execNew(classCaller);
+//    Log.e(TAG, "restartServer --> "+result);
+//  }
 
 }

@@ -20,6 +20,7 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import androidx.annotation.RequiresApi;
@@ -1162,15 +1163,15 @@ public class Helper {
     });
   }
 
-  public static Single<Boolean> restartServer(Context context) {
-    return SingleJust.just(context).map(new Function<Context, Boolean>() {
-      @Override
-      public Boolean apply(@NonNull Context context) throws Exception {
-        AppOpsx.getInstance(context).getApiSupporter().restartServer(context);
-        return true;
-      }
-    });
-  }
+//  public static Single<Boolean> restartServer(Context context) {
+//    return SingleJust.just(context).map(new Function<Context, Boolean>() {
+//      @Override
+//      public Boolean apply(@NonNull Context context) throws Exception {
+//        AppOpsx.getInstance(context).getApiSupporter().restartServer(context);
+//        return true;
+//      }
+//    });
+//  }
 
   public static Function<List<AppInfo>, List<AppInfo>> getSortComparator(final Context context) {
     return new Function<List<AppInfo>, List<AppInfo>>() {

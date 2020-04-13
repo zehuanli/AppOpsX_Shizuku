@@ -1,6 +1,5 @@
-package com.zzzmode.appopsx.ui.permission;
+package com.zzzmode.appopsx.ui.main.permission;
 
-import android.app.AppOpsManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -20,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
+import com.zzzmode.appopsx.ui.core.AppConstraint;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -79,7 +79,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
       setTitle(appInfo.appName);
     }
 
-
     tvError = (TextView) findViewById(R.id.tv_error);
     mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -87,20 +86,12 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
     recyclerView.addItemDecoration(new CommonDivderDecorator(getApplicationContext()));
 
-    adapter = new AppPermissionAdapter();
-    recyclerView.setAdapter(adapter);
-
-    adapter.setListener(new AppPermissionAdapter.OnSwitchItemClickListener() {
-      @Override
-      public void onSwitch(OpEntryInfo info, boolean v) {
-
-        mPresenter.switchMode(info, v);
-      }
-    });
-
     pkgName = appInfo.packageName;
     mPresenter = new PermPresenter(this, appInfo, getApplicationContext());
     mPresenter.setUp();
+
+    adapter = new AppPermissionAdapter(mPresenter);
+    recyclerView.setAdapter(adapter);
   }
 
 
@@ -116,13 +107,12 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
         appInfo = new AppInfo();
         appInfo.packageName = pkgName;
       }
-
     }
     return appInfo;
   }
 
   private void loadAppinfo(String pkgName){
-    Helper.getAppInfo(getApplicationContext(),pkgName)
+    Helper.getAppInfo(getApplicationContext(), pkgName)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new SingleObserver<AppInfo>() {
@@ -164,10 +154,10 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
         showHidePerms();
         return true;
       case R.id.action_open_all:
-        changeAll(AppOpsManager.MODE_ALLOWED);
+        changeAll(AppConstraint.MODE_ALLOWED);
         break;
       case R.id.action_close_all:
-        changeAll(AppOpsManager.MODE_IGNORED);
+        changeAll(AppConstraint.MODE_IGNORED);
         break;
       case R.id.action_app_info:
         startAppinfo();
@@ -204,7 +194,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
         if (s != null) {
           item.setChecked(!item.isChecked());
           sp.edit().putBoolean(s, item.isChecked()).apply();
-          ActivityCompat.invalidateOptionsMenu(AppPermissionActivity.this);
+          invalidateOptionsMenu();
           mPresenter.load();
         }
         return true;
@@ -242,7 +232,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     tvError.setVisibility(View.GONE);
     mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
 
-    ActivityCompat.invalidateOptionsMenu(AppPermissionActivity.this);
+    invalidateOptionsMenu();
   }
 
   @Override
@@ -251,7 +241,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     tvError.setVisibility(View.VISIBLE);
     tvError.setText(text);
 
-    ActivityCompat.invalidateOptionsMenu(AppPermissionActivity.this);
+    invalidateOptionsMenu();
   }
 
   @Override
@@ -264,7 +254,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     adapter.setDatas(opEntryInfos);
     adapter.notifyDataSetChanged();
 
-    ActivityCompat.invalidateOptionsMenu(AppPermissionActivity.this);
+    invalidateOptionsMenu();
   }
 
   @Override

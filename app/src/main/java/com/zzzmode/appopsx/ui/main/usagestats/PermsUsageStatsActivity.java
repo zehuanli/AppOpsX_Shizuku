@@ -85,26 +85,19 @@ public class PermsUsageStatsActivity extends BaseActivity {
   private void loadData(final boolean isFirst) {
     boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
         .getBoolean("show_sysapp", false);
-
-    Helper.getPermsUsageStatus(getApplicationContext(),showSysApp).
-        subscribeOn(Schedulers.io())
+    Helper.getPermsUsageStatus(getApplicationContext(), showSysApp)
+        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new ResourceSingleObserver<List<Pair<AppInfo, OpEntryInfo>>>() {
           @Override
           public void onSuccess(@NonNull List<Pair<AppInfo, OpEntryInfo>> pairs) {
-
-
             mProgressBar.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
             mSwipeRefreshLayout.setRefreshing(false);
-
             if (isFirst) {
               mSwipeRefreshLayout.setEnabled(true);
             }
-
-
             adapter.showItems(pairs);
-
             invalidateOptionsMenu();
           }
 

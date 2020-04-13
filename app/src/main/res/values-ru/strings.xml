@@ -27,7 +27,7 @@
   <string name="auto_ignore_permission_temp_summary">Только выбранные разрешения будут отключены, если функция автоматического отключения активна</string>
   <string name="allow_bg_remote">Разрешить работать в фоновом режиме</string>
   <string name="allow_bg_remote_summary">Позволяет работать в фоновом режиме, может уменьшить количество приложений, запрашивающих root.</string>
-  <string name="show_log">Показать лог</string>
+  <string name="show_about">Показать лог</string>
   <string name="log_empty">Нет логов</string>
   <string name="show_sys_apps">Отображать системные приложения</string>
   <string name="show_sys_apps_summary">Отображать системные приложения в списке приложений</string>

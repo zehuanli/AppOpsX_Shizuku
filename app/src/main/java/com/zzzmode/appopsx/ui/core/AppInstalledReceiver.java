@@ -12,7 +12,7 @@ import android.widget.Toast;
 import androidx.core.text.BidiFormatter;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.model.AppInfo;
-import com.zzzmode.appopsx.ui.permission.AlertInstalledPremActivity;
+import com.zzzmode.appopsx.ui.main.permission.AlertInstalledPremActivity;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;

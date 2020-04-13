@@ -27,7 +27,7 @@
   <string name="auto_ignore_permission_temp_summary">Se abre automáticamente después de que cerca de los permisos, sólo el permiso select está desactivado de forma predeterminada.</string>
   <string name="allow_bg_remote">Permite fondo corriente</string>
   <string name="allow_bg_remote_summary">Permite funcionamiento en segundo plano puede reducir el número de solicitudes autorizadas por la ventana de la raíz, parte de teléfono SuperSU autorizado también a menudo cuando el valor global predeterminado permite los consejos AppOpsX.</string>
-  <string name="show_log">Mostrar registro</string>
+  <string name="show_about">Mostrar registro</string>
   <string name="log_empty">No hay registro</string>
   <string name="show_sys_apps">Sistema de visualización</string>
   <string name="show_sys_apps_summary">Aplicación en el sistema de aplicación de la lista</string>

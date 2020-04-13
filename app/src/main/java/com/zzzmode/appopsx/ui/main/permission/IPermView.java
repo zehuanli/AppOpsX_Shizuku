@@ -1,4 +1,4 @@
-package com.zzzmode.appopsx.ui.permission;
+package com.zzzmode.appopsx.ui.main.permission;
 
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 import java.util.List;

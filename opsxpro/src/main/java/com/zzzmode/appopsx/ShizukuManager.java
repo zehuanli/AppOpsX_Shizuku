@@ -3,9 +3,15 @@ package com.zzzmode.appopsx;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageManager;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ParceledListSlice;
+import android.content.pm.PermissionInfo;
+import android.content.pm.UserInfo;
 import android.os.Build;
+import android.os.IUserManager;
 import android.os.Parcelable;
+import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,6 +25,7 @@ import com.zzzmode.appopsx.common.ReflectUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import moe.shizuku.api.ShizukuApiConstants;
 import moe.shizuku.api.ShizukuBinderWrapper;
 import moe.shizuku.api.ShizukuService;
 import moe.shizuku.api.SystemServiceHelper;
@@ -28,31 +35,32 @@ public class ShizukuManager {
 
     private static ShizukuManager sShizukuManager;
 
-    private OpsxManager.Config mConfig;
+    private Context mContext;
 
     private boolean initialized = false;
     private IPackageManager packageManager;
     private IAppOpsService appOpsService;
+    private IUserManager userManager;
 
-    static ShizukuManager getInstance(OpsxManager.Config config) {
+    static ShizukuManager getInstance(Context context) {
         if (sShizukuManager == null) {
             synchronized (ShizukuManager.class) {
                 if (sShizukuManager == null) {
-                    sShizukuManager = new ShizukuManager(config);
+                    sShizukuManager = new ShizukuManager(context);
                 }
             }
         }
         return sShizukuManager;
     }
 
-    private ShizukuManager(OpsxManager.Config config) {
-        mConfig = config;
+    private ShizukuManager(Context context) {
+        mContext = context;
         if (!ShizukuService.pingBinder()) {
-            Toast.makeText(mConfig.context, "WARNING: Shizuku server not running", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "WARNING: Shizuku server not running", Toast.LENGTH_LONG).show();
+        } else if (mContext.checkSelfPermission(ShizukuApiConstants.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(mContext, "WARNING: Shizuku permission not granted", Toast.LENGTH_LONG).show();
         } else {
-            packageManager = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
-            appOpsService = IAppOpsService.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(Context.APP_OPS_SERVICE)));
-            initialized = true;
+            initializeSystemService();
         }
     }
 
@@ -60,11 +68,39 @@ public class ShizukuManager {
         if (!ShizukuService.pingBinder()) {
             throw new RuntimeException("Shizuku server not running");
         }
-        if (!initialized) {
-            packageManager = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
-            appOpsService = IAppOpsService.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(Context.APP_OPS_SERVICE)));
-            initialized = true;
+        if (mContext.checkSelfPermission(ShizukuApiConstants.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+            throw new RuntimeException("Shizuku permission not granted");
         }
+        if (!initialized) {
+            initializeSystemService();
+        }
+    }
+
+    private void initializeSystemService() {
+        packageManager = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
+        appOpsService = IAppOpsService.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(Context.APP_OPS_SERVICE)));
+        userManager = IUserManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(Context.USER_SERVICE)));
+        initialized = true;
+    }
+
+    PackageInfo getPackageInfo(String packageName, int flags, int userId) throws RemoteException {
+        checkShizuku();
+        return packageManager.getPackageInfo(packageName, flags, userId);
+    }
+
+    PermissionInfo getPermissionInfo(String permissionName, String packageName, int flags) throws RemoteException {
+        checkShizuku();
+        return packageManager.getPermissionInfo(permissionName, packageName, flags);
+    }
+
+    List<PackageInfo> getInstalledPackages(int flags, int uid) throws RemoteException {
+        checkShizuku();
+        return packageManager.getInstalledPackages(flags, uid).getList();
+    }
+
+    List<UserInfo> getUsers(boolean excludeDying) {
+        checkShizuku();
+        return userManager.getUsers(excludeDying);
     }
 
     OpsResult getOpsForPackage(String packageName, int userId) {
@@ -88,7 +124,7 @@ public class ShizukuManager {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         appOpsService.setMode(opInt, uid, packageName, modeInt);
-        return null;
+        return new OpsResult(new ArrayList<PackageOps>(), null);
     }
 
     OpsResult getPackagesForOps(int[] ops) {
@@ -107,7 +143,7 @@ public class ShizukuManager {
     OpsResult resetAllModes(int userId, String packageName) {
         checkShizuku();
         appOpsService.resetAllModes(userId, packageName);
-        return null;
+        return new OpsResult(new ArrayList<PackageOps>(), null);
     }
 
 

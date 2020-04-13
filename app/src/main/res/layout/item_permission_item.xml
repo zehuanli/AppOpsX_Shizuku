@@ -7,8 +7,8 @@
   android:clickable="true">
 
 
-  <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/switch_compat"
+  <Spinner
+    android:id="@+id/spinner"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_alignParentRight="true"
@@ -33,7 +33,7 @@
     android:orientation="vertical"
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
-    android:layout_toLeftOf="@id/switch_compat"
+    android:layout_toLeftOf="@id/spinner"
     android:layout_toRightOf="@id/img_group"
     android:paddingBottom="16dp"
     android:paddingTop="16dp">

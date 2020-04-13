@@ -20,9 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class AppGlobal extends Application implements Application.ActivityLifecycleCallbacks {
-
-  private AtomicInteger mAliveActivity = new AtomicInteger(0);
-
   @Override
   public void onCreate() {
     super.onCreate();
@@ -80,7 +77,6 @@ public class AppGlobal extends Application implements Application.ActivityLifecy
 
   @Override
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    mAliveActivity.getAndIncrement();
   }
 
   @Override
@@ -110,10 +106,5 @@ public class AppGlobal extends Application implements Application.ActivityLifecy
 
   @Override
   public void onActivityDestroyed(Activity activity) {
-    int i = mAliveActivity.decrementAndGet();
-    if (i <= 0) {
-      Log.e("test", "onActivityDestroyed --> ");
-      Helper.closeBgServer(getApplicationContext());
-    }
   }
 }

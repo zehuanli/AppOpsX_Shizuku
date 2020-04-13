@@ -116,16 +116,12 @@
     android:key="others"
     android:title="@string/others">
     <androidx.preference.Preference
-      android:key="close_server"
-      android:title="@string/close_bg_server_summary"
-      android:summary="@string/close_bg_server_title"/>
-    <androidx.preference.Preference
       android:key="acknowledgments"
       android:summary="@string/acknowledgment_description"
       android:title="@string/acknowledgment"/>
     <androidx.preference.Preference
-      android:key="show_log"
-      android:title="@string/show_log"/>
+      android:key="show_about"
+      android:title="@string/show_about"/>
     <androidx.preference.Preference
       android:key="help"
       android:title="@string/help"/>

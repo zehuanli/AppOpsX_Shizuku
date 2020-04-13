@@ -4,8 +4,11 @@ import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.pm.IPackageManager;
 import android.content.pm.PackageInfo;
+import android.content.pm.PermissionInfo;
+import android.content.pm.UserInfo;
 import android.os.Bundle;
 import android.os.Process;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,62 +36,40 @@ public class OpsxManager {
 
   private static final String TAG = "OpsxManager";
 
-  private Context mContext;
-
-  // private LocalServerManager mLocalServerManager;
   private ShizukuManager mShizukuManager;
-
-  private int mUserHandleId;
 
   private int userId;
 
-  private static String pkgName;
-
-  private ApiSupporter apiSupporter;
-
   public OpsxManager(Context context) {
-    this(context, new Config());
-  }
-
-  public OpsxManager(Context context, Config config) {
-    mContext = context;
-    config.context = mContext;
-    mUserHandleId = Process.myUid() / 100000; //android.os.UserHandle.myUserId()
-    // SConfig.init(context, mUserHandleId);
-    userId = mUserHandleId;
-    // mLocalServerManager = LocalServerManager.getInstance(config);
-    mShizukuManager = ShizukuManager.getInstance(config);
-    // apiSupporter = new ApiSupporter(mLocalServerManager);
-    apiSupporter = new ApiSupporter();
-    pkgName = context.getPackageName();
+    userId = Process.myUid() / 100000;
+    mShizukuManager = ShizukuManager.getInstance(context);
   }
 
   public void setUserHandleId(int uid) {
     this.userId = uid;
   }
 
-  public Config getConfig() {
-    // return mLocalServerManager.getConfig();
-    return new Config();
+  public PackageInfo getPackageInfo(String packageName, int flags, int userId) throws RemoteException {
+    return mShizukuManager.getPackageInfo(packageName, flags, userId);
+  }
+
+    public PermissionInfo getPermissionInfo(String permissionName, String packageName, int flags) throws RemoteException {
+    return mShizukuManager.getPermissionInfo(permissionName, packageName, flags);
+  }
+
+  public List<PackageInfo> getInstalledPackages(int flags, int uid) throws RemoteException {
+    return mShizukuManager.getInstalledPackages(flags, uid);
+  }
+
+  public List<UserInfo> getUsers(boolean excludeDying) {
+    return mShizukuManager.getUsers(excludeDying);
   }
 
   public OpsResult getOpsForPackage(final String packageName) {
     return mShizukuManager.getOpsForPackage(packageName, userId);
   }
 
-
-  private OpsResult wrapOps(OpsCommands.Builder builder) throws Exception {
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("args",builder);
-    // ClassCaller classCaller = new ClassCaller(pkgName,AppOpsHandler.class.getName(),bundle);
-    // CallerResult result = mLocalServerManager.execNew(classCaller);
-    // Bundle replyBundle = result.getReplyBundle();
-    // return replyBundle.getParcelable("return");
-    // TODO: Implement this
-    return new OpsResult(new ArrayList<PackageOps>(), null);
-  }
-
-  public OpsResult getPackagesForOps(int[] ops, boolean reqNet) {
+  public OpsResult getPackagesForOps(int[] ops) {
     return mShizukuManager.getPackagesForOps(ops);
   }
 
@@ -98,22 +79,6 @@ public class OpsxManager {
 
   public OpsResult resetAllModes(String packageName) {
     return mShizukuManager.resetAllModes(userId, packageName);
-  }
-
-  public ApiSupporter getApiSupporter() {
-    return apiSupporter;
-  }
-
-//  public void destory() {
-//    if (mLocalServerManager != null) {
-//      mLocalServerManager.stop();
-//    }
-//  }
-
-  public boolean isRunning() {
-    // return mLocalServerManager != null && mLocalServerManager.isRunning();
-    // TODO: Implement this
-    return true;
   }
 
   public OpsResult disableAllPermission(final String packageName) throws Exception {
@@ -138,30 +103,5 @@ public class OpsxManager {
       }
     }
     return opsForPackage;
-  }
-
-
-  public void closeBgServer() {
-//    if(mLocalServerManager != null){
-//      mLocalServerManager.closeBgServer();
-//      mLocalServerManager.stop();
-//    }
-    // TODO: Implement unlink binder, if necessary
-  }
-
-  public static boolean isEnableSELinux() {
-    return AssetsUtils.isEnableSELinux();
-  }
-
-  public static class Config {
-
-    public boolean allowBgRunning = false;
-    public String logFile;
-    public boolean printLog = false;
-    public boolean useAdb = false;
-    public boolean rootOverAdb = false;
-    public String adbHost = "127.0.0.1";
-    public int adbPort = 5555;
-    Context context;
   }
 }

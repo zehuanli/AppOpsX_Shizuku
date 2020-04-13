@@ -1,7 +1,6 @@
 package com.zzzmode.appopsx.ui.main;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -77,7 +76,6 @@ public class SettingsActivity extends BaseActivity {
   @Override
   protected void onStop() {
     super.onStop();
-    AppOpsx.updateConfig(getApplicationContext());
   }
 
 
@@ -85,7 +83,6 @@ public class SettingsActivity extends BaseActivity {
       Preference.OnPreferenceClickListener {
 
     private Preference mPrefAppSort;
-    private Preference mUseAdb;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -93,9 +90,6 @@ public class SettingsActivity extends BaseActivity {
 
       findPreference("ignore_premission").setOnPreferenceClickListener(this);
       findPreference("show_sysapp").setOnPreferenceClickListener(this);
-
-      mUseAdb = findPreference("use_adb");
-      mUseAdb.setOnPreferenceClickListener(this);
 
       findPreference("allow_bg_remote").setOnPreferenceClickListener(this);
       findPreference("project").setOnPreferenceClickListener(this);
@@ -151,20 +145,11 @@ public class SettingsActivity extends BaseActivity {
         }
       });
 
-      findPreference("show_log")
+      findPreference("show_about")
           .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-              showLog();
-              return true;
-            }
-          });
-
-      findPreference("close_server")
-          .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-              closeServer();
+              showAbout();
               return true;
             }
           });
@@ -177,33 +162,6 @@ public class SettingsActivity extends BaseActivity {
               return true;
             }
           });
-
-      final NumberPickerPreference adbPortPreference = (NumberPickerPreference) findPreference(
-          "use_adb_port");
-      adbPortPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-          if (newValue instanceof Integer) {
-            mUseAdb.setSummary(getString(R.string.use_adb_mode_summary, (int) newValue));
-          }
-          return true;
-        }
-      });
-
-      mUseAdb.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-          if (newValue instanceof Boolean) {
-            adbPortPreference.setVisible(((Boolean) newValue));
-          }
-          return true;
-        }
-      });
-
-      mUseAdb.setSummary(getString(R.string.use_adb_mode_summary, adbPortPreference.getValue()));
-
-      adbPortPreference.setVisible(
-          PreferenceManager.getDefaultSharedPreferences(getContext()).getBoolean("use_adb", false));
     }
 
 
@@ -226,6 +184,7 @@ public class SettingsActivity extends BaseActivity {
       setAllPreferencesToAvoidHavingExtraSpace(preferenceScreen);
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected Adapter onCreateAdapter(PreferenceScreen preferenceScreen) {
       return new PreferenceGroupAdapter(preferenceScreen){
@@ -248,29 +207,6 @@ public class SettingsActivity extends BaseActivity {
       } else {
         super.onDisplayPreferenceDialog(preference);
       }
-    }
-
-    private void closeServer() {
-      Helper.closeBgServer(getActivity().getApplicationContext()).subscribeOn(Schedulers.io())
-          .observeOn(AndroidSchedulers.mainThread()).subscribe(new SingleObserver<Boolean>() {
-        @Override
-        public void onSubscribe(Disposable d) {
-
-        }
-
-        @Override
-        public void onSuccess(Boolean value) {
-          Activity activity = getActivity();
-          if (activity != null) {
-            Toast.makeText(activity, R.string.bg_closed, Toast.LENGTH_SHORT).show();
-          }
-        }
-
-        @Override
-        public void onError(Throwable e) {
-
-        }
-      });
     }
 
     private void showPremissionTemplete() {
@@ -435,11 +371,11 @@ public class SettingsActivity extends BaseActivity {
       getActivity().finish();
     }
 
-    private void showLog() {
+    private void showAbout() {
       SingleJust.create(new SingleOnSubscribe<String>() {
         @Override
         public void subscribe(SingleEmitter<String> e) throws Exception {
-          e.onSuccess(AppOpsx.readLogs(getActivity()));
+          e.onSuccess(AppOpsx.about(getActivity()));
         }
       }).subscribeOn(Schedulers.io())
           .observeOn(AndroidSchedulers.mainThread())
@@ -451,7 +387,7 @@ public class SettingsActivity extends BaseActivity {
 
             @Override
             public void onSuccess(String value) {
-              showTextDialog(R.string.show_log, value);
+              showTextDialog(R.string.show_about, value);
             }
 
             @Override

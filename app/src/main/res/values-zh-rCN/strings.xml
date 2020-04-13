@@ -32,7 +32,7 @@
   <string name="allow_bg_remote">允许后台运行</string>
   <string name="allow_bg_remote_summary">允许后台运行可以减少申请root弹窗授权的次数，部分手机上SuperSU全局默认允许AppOpsX时也会经常出现授权提示。</string>
 
-  <string name="show_log">显示日志</string>
+  <string name="show_about">关于</string>
   <string name="log_empty">没有日志</string>
 
 
@@ -132,6 +132,7 @@
 
   <string name="shell_cmd">adb shell sh /sdcard/Android/data/com.zzzmode.appopsx/opsx.sh &amp;</string>
   <string name="never_used">(从未使用)</string>
+  <string name="reject_prefix">拒绝于</string>
 
   <string name="menu_app_info">应用信息</string>
 

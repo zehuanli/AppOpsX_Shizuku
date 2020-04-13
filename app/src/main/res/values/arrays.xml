@@ -42,4 +42,9 @@
     <item>ru</item>
   </string-array>
 
+  <string-array name="op_modes">
+    <item>Allow</item>
+    <item>Ignore</item>
+    <item>Foreground</item>
+  </string-array>
 </resources>

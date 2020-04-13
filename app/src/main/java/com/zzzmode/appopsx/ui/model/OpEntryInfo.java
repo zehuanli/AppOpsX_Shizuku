@@ -3,6 +3,7 @@ package com.zzzmode.appopsx.ui.model;
 import android.app.AppOpsManager;
 import com.zzzmode.appopsx.common.FixCompat;
 import com.zzzmode.appopsx.common.OpEntry;
+import com.zzzmode.appopsx.ui.core.AppConstraint;
 
 /**
  * Created by zl on 2016/11/18.
@@ -46,16 +47,8 @@ public class OpEntryInfo {
     }
   }
 
-  public boolean isAllowed() {
-    return this.mode == AppOpsManager.MODE_ALLOWED;
-  }
-
-  public void changeStatus() {
-    if (isAllowed()) {
-      this.mode = AppOpsManager.MODE_IGNORED;
-    } else {
-      this.mode = AppOpsManager.MODE_ALLOWED;
-    }
+  public boolean isAllowOrForeground() {
+    return this.mode == AppConstraint.MODE_ALLOWED || this.mode == AppConstraint.MODE_FOREGROUND;
   }
 
   @Override

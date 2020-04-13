@@ -6,22 +6,6 @@
         android:supportsRtl="true">
 
         <provider
-          android:authorities="com.zzzmode.appopsx.provider.local"
-          android:name="com.zzzmode.appopsx.OpsxConfigProvider"
-          android:exported="true"
-          android:enabled="true"
-          />
-
-        <receiver android:name="com.zzzmode.appopsx.ServerStatusChangeReceiver" android:enabled="true">
-            <intent-filter>
-                <action android:name="com.zzzmode.appopsx.action.SERVER_STARTED"/>
-                <action android:name="com.zzzmode.appopsx.action.SERVER_CONNECTED"/>
-                <action android:name="com.zzzmode.appopsx.action.SERVER_DISCONNECTED"/>
-                <action android:name="com.zzzmode.appopsx.action.SERVER_STOPED"/>
-            </intent-filter>
-        </receiver>
-
-        <provider
             android:name="moe.shizuku.api.ShizukuBinderReceiveProvider"
             android:authorities="${applicationId}.shizuku"
             android:multiprocess="false"

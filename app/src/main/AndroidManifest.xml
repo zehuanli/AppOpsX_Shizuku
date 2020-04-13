@@ -23,7 +23,7 @@
     <activity
       android:configChanges="keyboardHidden|orientation|screenSize"
       android:exported="true"
-      android:name=".ui.permission.AppPermissionActivity">
+      android:name=".ui.main.permission.AppPermissionActivity">
       <intent-filter>
         <!-- e.g. appops://details?id=com.zzzmode.appopsx -->
         <action android:name="android.intent.action.VIEW"/>
@@ -47,7 +47,7 @@
       android:configChanges="keyboardHidden|orientation|screenSize"
       android:excludeFromRecents="true"
       android:exported="true"
-      android:name=".ui.permission.AlertInstalledPremActivity"
+      android:name=".ui.main.permission.AlertInstalledPremActivity"
       android:noHistory="true"
       android:taskAffinity="com.zzzmode.appopsx.task.alert"
       android:theme="@style/alert.perm"

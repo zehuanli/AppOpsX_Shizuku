@@ -40,6 +40,9 @@ public interface IPackageManager extends IInterface {
   void revokeRuntimePermission(String packageName, String permissionName, int userId)
           throws RemoteException;
 
+  PermissionInfo getPermissionInfo(String permissionName, String packageName, int flags)
+          throws RemoteException;
+
   int getPermissionFlags(String permissionName, String packageName, int userId)
           throws RemoteException;
 

@@ -20,6 +20,7 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
+import com.zzzmode.appopsx.ui.core.AppConstraint;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.widget.CommonDivderDecorator;
@@ -84,15 +85,12 @@ public class PermissionGroupActivity extends BaseActivity implements
 
     recyclerView.setHasFixedSize(true);
 
-    myItemAdapter = new PermissionGroupAdapter(mRecyclerViewExpandableItemManager);
+    mPresenter = new PermGroupPresenter(this,getApplicationContext());
+    mPresenter.loadPerms();
+
+    myItemAdapter = new PermissionGroupAdapter(mRecyclerViewExpandableItemManager, mPresenter);
     myItemAdapter.setHasStableIds(true);
-    myItemAdapter.setListener(new PermissionGroupAdapter.OnSwitchItemClickListener() {
-      @Override
-      public void onSwitch(int groupPosition, int childPosition, PermissionChildItem info,
-          boolean v) {
-        mPresenter.changeMode(groupPosition, childPosition, info);
-      }
-    }, new PermissionGroupAdapter.OnGroupOtherClickListener() {
+    myItemAdapter.setListener(new PermissionGroupAdapter.OnGroupOtherClickListener() {
       @Override
       public void onOtherClick(int groupPosition, View view) {
         contextGroupPosition = groupPosition;
@@ -108,10 +106,6 @@ public class PermissionGroupActivity extends BaseActivity implements
 
     stickyHelper = new ScrollTopHelper(recyclerView, (LinearLayoutManager) mLayoutManager,
         mRecyclerViewExpandableItemManager,findViewById(R.id.fab));
-
-
-    mPresenter = new PermGroupPresenter(this,getApplicationContext());
-    mPresenter.loadPerms();
   }
 
 
@@ -169,8 +163,6 @@ public class PermissionGroupActivity extends BaseActivity implements
       case android.R.id.home:
         finish();
         return true;
-      case R.id.action_with_net:
-        return true;
       default:
         return super.onOptionsItemSelected(item);
     }
@@ -181,7 +173,6 @@ public class PermissionGroupActivity extends BaseActivity implements
     if(mPresenter != null && mPresenter.isLoadSuccess()){
       getMenuInflater().inflate(R.menu.group_menu,menu);
 
-      MenuItem menuShowNet = menu.findItem(R.id.action_with_net);
       MenuItem mendShowHided = menu.findItem(R.id.action_show_ignored);
 
       final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -191,20 +182,15 @@ public class PermissionGroupActivity extends BaseActivity implements
         public boolean onMenuItemClick(MenuItem item) {
           item.setChecked(!item.isChecked());
           switch (item.getItemId()){
-            case R.id.action_with_net:
-              sp.edit().putBoolean("key_g_show_net", item.isChecked()).apply();
-              break;
             case R.id.action_show_ignored:
               sp.edit().putBoolean("key_g_show_ignored", item.isChecked()).apply();
               break;
           }
           invalidateOptionsMenu();
+          recreate();
           return true;
         }
       };
-
-      menuShowNet.setChecked(sp.getBoolean("key_g_show_net", false));
-      menuShowNet.setOnMenuItemClickListener(itemClickListener);
 
       mendShowHided.setChecked(sp.getBoolean("key_g_show_ignored",false));
       mendShowHided.setOnMenuItemClickListener(itemClickListener);
@@ -265,8 +251,9 @@ public class PermissionGroupActivity extends BaseActivity implements
         for (int i = 0; i < size; i++) {
           PermissionChildItem info = apps.get(i);
           if (info.opEntryInfo.mode != newMode) {
-            //changeMode(groupPosition, i, info);
-            mPresenter.changeMode(groupPosition,i,info);
+            int prevMode = info.opEntryInfo.mode;
+            info.opEntryInfo.mode = newMode;
+            mPresenter.changeMode(groupPosition, i, info, prevMode);
           }
         }
       } catch (Exception e) {
@@ -280,10 +267,10 @@ public class PermissionGroupActivity extends BaseActivity implements
   public boolean onMenuItemClick(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_close_all:
-        changeAll(AppOpsManager.MODE_IGNORED);
+        changeAll(AppConstraint.MODE_IGNORED);
         return true;
       case R.id.action_open_all:
-        changeAll(AppOpsManager.MODE_ALLOWED);
+        changeAll(AppConstraint.MODE_ALLOWED);
         return true;
     }
     return super.onContextItemSelected(item);

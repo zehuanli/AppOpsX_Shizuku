@@ -42,8 +42,8 @@
     android:layout_centerVertical="true"
     android:layout_marginRight="4dp">
 
-    <androidx.appcompat.widget.SwitchCompat
-      android:id="@+id/switch_compat"
+    <androidx.appcompat.widget.AppCompatSpinner
+      android:id="@+id/spinner"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginRight="4dp"
@@ -59,7 +59,6 @@
       android:layout_marginTop="4dp"
       android:maxLines="1"
       android:ellipsize="end"
-      android:text="4545"
       />
   </LinearLayout>
 

@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.model.AppInfo;
-import com.zzzmode.appopsx.ui.permission.AppPermissionActivity;
+import com.zzzmode.appopsx.ui.main.permission.AppPermissionActivity;
 import java.util.ArrayList;
 import java.util.List;
 

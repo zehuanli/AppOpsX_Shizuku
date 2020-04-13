@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="op_modes">
+    <item>允许</item>
+    <item>拒绝</item>
+    <item>前台时允许</item>
+  </string-array>
+</resources>

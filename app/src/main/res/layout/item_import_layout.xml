@@ -15,7 +15,6 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="8dp"
     android:paddingTop="8dp"
-    android:text="202020022"
     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
     android:textColor="?android:attr/textColorPrimary"/>
 
@@ -25,7 +24,6 @@
     android:layout_height="wrap_content"
     android:layout_below="@id/title"
     android:layout_marginLeft="8dp"
-    android:text="2016-12-22 33:45:05"
     android:textAppearance="?android:attr/textAppearanceListItemSmall"
     android:textColor="?android:attr/textColorSecondary"/>
 
@@ -43,7 +41,6 @@
       android:layout_width="0dp"
       android:layout_height="wrap_content"
       android:layout_weight="1"
-      android:text="备份条数:33"
       android:textAppearance="?android:attr/textAppearanceListItemSmall"
       android:textColor="?android:attr/textColorSecondary"/>
 
@@ -52,7 +49,6 @@
       android:layout_width="0dp"
       android:layout_height="wrap_content"
       android:layout_weight="1"
-      android:text="文件大小:1kb"
       android:textAppearance="?android:attr/textAppearanceListItemSmall"
       android:textColor="?android:attr/textColorSecondary"/>
   </LinearLayout>

@@ -25,7 +25,6 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="center_vertical"
-      android:text="sdfsdf"
       android:textAppearance="@style/TextAppearance.AppCompat.Medium"
       android:textColor="?android:attr/textColorPrimary"/>
 
@@ -33,7 +32,6 @@
       android:id="@+id/tv_info"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="sdfsdf"
       android:layout_gravity="center_vertical"
       android:textAppearance="?android:attr/textAppearanceListItemSmall"
       android:textColor="?android:attr/textColorSecondary"/>

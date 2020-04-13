@@ -10,6 +10,7 @@ android {
         applicationId "com.zzzmode.appopsx"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
         signingConfig signingConfigs.debug

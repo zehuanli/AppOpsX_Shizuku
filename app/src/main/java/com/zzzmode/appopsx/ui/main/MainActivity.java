@@ -1,7 +1,9 @@
 package com.zzzmode.appopsx.ui.main;
 
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
@@ -18,6 +20,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -97,7 +100,6 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
         adapter = new MainListAdapter();
         recyclerView.setAdapter(adapter);
 
-        loadData(true);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -105,9 +107,42 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
             }
         });
 
-        requestShizukuPermission();
+        if (checkSelfPermission(SHIZUKU_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            init();
+        } else {
+            requestPermissions(new String[]{SHIZUKU_PERMISSION}, SHIZUKU_REQUEST_CODE_PERMISSION_V3);
+        }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == SHIZUKU_REQUEST_CODE_PERMISSION_V3) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                init();
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Shizuku permission is required");
+                builder.setPositiveButton("Request", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissions(new String[]{SHIZUKU_PERMISSION}, SHIZUKU_REQUEST_CODE_PERMISSION_V3);
+                    }
+                });
+                builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finishAndRemoveTask();
+                    }
+                });
+                builder.show();
+            }
+        }
+    }
+
+    private void init() {
+        loadData(true);
+        loadUsers();
+    }
 
     private void loadData(final boolean isFirst) {
         boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
@@ -156,7 +191,6 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
                 invalidateOptionsMenu();
             }
         });
-        loadUsers();
     }
 
 
@@ -328,14 +362,5 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
         AppOpsx.getInstance(getApplicationContext()).setUserHandleId(user.id);
         LocalImageLoader.clear();
         loadData(true);
-    }
-
-    private void requestShizukuPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // on API 23+, Shizuku v3 uses runtime permission
-            if (checkSelfPermission(SHIZUKU_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{SHIZUKU_PERMISSION}, SHIZUKU_REQUEST_CODE_PERMISSION_V3);
-            }
-        }
     }
 }

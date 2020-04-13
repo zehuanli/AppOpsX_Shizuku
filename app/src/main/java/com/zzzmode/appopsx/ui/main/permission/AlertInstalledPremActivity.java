@@ -1,4 +1,4 @@
-package com.zzzmode.appopsx.ui.permission;
+package com.zzzmode.appopsx.ui.main.permission;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -65,16 +65,8 @@ public class AlertInstalledPremActivity extends BaseActivity implements IPermVie
     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
     recyclerView.addItemDecoration(new CommonDivderDecorator(getApplicationContext()));
 
-    adapter = new AppPermissionAdapter();
+    adapter = new AppPermissionAdapter(mPresenter);
     recyclerView.setAdapter(adapter);
-
-    adapter.setListener(new AppPermissionAdapter.OnSwitchItemClickListener() {
-      @Override
-      public void onSwitch(OpEntryInfo info, boolean v) {
-
-        mPresenter.switchMode(info, v);
-      }
-    });
 
     DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
       @Override

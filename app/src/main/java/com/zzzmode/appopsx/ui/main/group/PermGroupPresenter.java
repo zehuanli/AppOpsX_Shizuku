@@ -1,8 +1,10 @@
 package com.zzzmode.appopsx.ui.main.group;
 
+import android.app.AppOpsManager;
 import android.content.Context;
 import android.preference.PreferenceManager;
 import com.zzzmode.appopsx.common.OpsResult;
+import com.zzzmode.appopsx.ui.core.AppConstraint;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
@@ -36,8 +38,6 @@ class PermGroupPresenter {
   void loadPerms() {
     boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(context)
         .getBoolean("show_sysapp", false);
-    boolean reqNet = PreferenceManager.getDefaultSharedPreferences(context)
-        .getBoolean("key_g_show_net", false);
 
     boolean showIgnored = PreferenceManager.getDefaultSharedPreferences(context)
         .getBoolean("key_g_show_ignored", false);
@@ -56,7 +56,7 @@ class PermGroupPresenter {
 
     };
 
-    Helper.getPermissionGroup(context,showSysApp,reqNet,showIgnored)
+    Helper.getPermissionGroup(context, showSysApp, showIgnored)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(subscriber);
@@ -68,23 +68,20 @@ class PermGroupPresenter {
   }
 
   void changeMode(final int groupPosition, final int childPosition,
-      final PermissionChildItem info) {
-
-    info.opEntryInfo.changeStatus();
-
+                  final PermissionChildItem info, final int prevMode) {
     Helper.setMode(context, info.appInfo.packageName, info.opEntryInfo)
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
         .subscribe(new ResourceObserver<OpsResult>() {
           @Override
           public void onNext(OpsResult value) {
-
-            mView.changeTitle(groupPosition, childPosition, info.opEntryInfo.isAllowed());
+            if (prevMode != info.opEntryInfo.mode && (prevMode == AppConstraint.MODE_ALLOWED || info.opEntryInfo.mode == AppConstraint.MODE_ALLOWED)) {
+              mView.changeTitle(groupPosition, childPosition, info.opEntryInfo.mode == AppConstraint.MODE_ALLOWED);
+            }
           }
 
           @Override
           public void onError(Throwable e) {
             try {
-              info.opEntryInfo.changeStatus();
               mView.refreshItem(groupPosition, childPosition);
             } catch (Exception e2) {
               e2.printStackTrace();

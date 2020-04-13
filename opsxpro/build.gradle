@@ -30,6 +30,8 @@ dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     api project(":AdbLib")
     compileOnly project(":apicompat")
+
+    implementation 'moe.shizuku.privilege:api:3.1.0'
 }
 
 preBuild.dependsOn ":opsxlib:build"

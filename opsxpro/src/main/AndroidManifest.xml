@@ -5,7 +5,6 @@
     <application android:allowBackup="true" android:label="@string/app_name"
         android:supportsRtl="true">
 
-
         <provider
           android:authorities="com.zzzmode.appopsx.provider.local"
           android:name="com.zzzmode.appopsx.OpsxConfigProvider"
@@ -21,6 +20,14 @@
                 <action android:name="com.zzzmode.appopsx.action.SERVER_STOPED"/>
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name="moe.shizuku.api.ShizukuBinderReceiveProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 
 </manifest>

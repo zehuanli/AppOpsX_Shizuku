@@ -1,34 +1,65 @@
 package android.content.pm;
 
-import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.IInterface;
+import android.os.RemoteException;
 
-/**
- * Created by zl on 2017/7/31.
- */
+import androidx.annotation.RequiresApi;
 
-public interface IPackageManager {
-  PackageInfo getPackageInfo(String packageName, int flags, int userId);
-  PermissionInfo getPermissionInfo(String name, int flags);
-  PermissionGroupInfo getPermissionGroupInfo(String name, int flags);
-  void grantRuntimePermission(String packageName, String permissionName, int userId);
+public interface IPackageManager extends IInterface {
 
-  void revokeRuntimePermission(String packageName, String permissionName, int userId);
+  ApplicationInfo getApplicationInfo(String packageName, int flags, int userId)
+          throws RemoteException;
 
-  void resetRuntimePermissions();
+  PackageInfo getPackageInfo(String packageName, int flags, int userId)
+          throws RemoteException;
 
-  int getPermissionFlags(String permissionName, String packageName, int userId);
-  String[] getAppOpPermissionPackages(String permissionName);
-  ResolveInfo resolveIntent(Intent intent, String resolvedType, int flags, int userId);
+  int getPackageUid(String packageName, int userId)
+          throws RemoteException;
 
-  ApplicationInfo getApplicationInfo(String packageName, int flags ,int userId);
+  @RequiresApi(24)
+  int getPackageUid(String packageName, int flags, int userId)
+          throws RemoteException;
 
-  ParceledListSlice getInstalledPackages(int flags, int userId);
+  String[] getPackagesForUid(int uid)
+          throws RemoteException;
 
-  int getPackageUid(String packageName,int flags , int userId);
+  ParceledListSlice getInstalledPackages(int flags, int userId)
+          throws RemoteException;
 
-  // for API 23 or lower
-  int getPackageUid(String packageName, int userId);
+  ParceledListSlice getInstalledApplications(int flags, int userId)
+          throws RemoteException;
 
+  int getUidForSharedUser(String sharedUserName)
+          throws RemoteException;
+
+  void grantRuntimePermission(String packageName, String permissionName, int userId)
+          throws RemoteException;
+
+  void revokeRuntimePermission(String packageName, String permissionName, int userId)
+          throws RemoteException;
+
+  int getPermissionFlags(String permissionName, String packageName, int userId)
+          throws RemoteException;
+
+  void updatePermissionFlags(String permissionName, String packageName, int flagMask, int flagValues, int userId)
+          throws RemoteException;
+
+  @RequiresApi(29)
+  void updatePermissionFlags(String permissionName, String packageName, int flagMask, int flagValues, boolean checkAdjustPolicyFlagPermission, int userId)
+          throws RemoteException;
+
+  int checkPermission(String permName, String pkgName, int userId)
+          throws RemoteException;
+
+  int checkUidPermission(String permName, int uid)
+          throws RemoteException;
+
+  abstract class Stub extends Binder implements IPackageManager {
+
+    public static IPackageManager asInterface(IBinder obj) {
+      throw new UnsupportedOperationException();
+    }
+  }
 }

@@ -1,22 +1,17 @@
 package com.zzzmode.appopsx.ui.main;
 
 import android.annotation.SuppressLint;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +29,7 @@ import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LangHelper;
+import com.zzzmode.appopsx.ui.core.ShizukuManager;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 import com.zzzmode.appopsx.ui.widget.NumberPickerPreference;
 
@@ -102,6 +98,16 @@ public class SettingsActivity extends BaseActivity {
             findPreference("help").setOnPreferenceClickListener(this);
             findPreference("translate").setOnPreferenceClickListener(this);
 
+            Preference commit = findPreference("commit");
+            try {
+                PackageInfo packageInfo = getActivity().getPackageManager()
+                        .getPackageInfo(getContext().getPackageName(), PackageManager.GET_META_DATA);
+                commit.setSummary(packageInfo.applicationInfo.metaData.getString("GIT_COMMIT_ID"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            commit.setOnPreferenceClickListener(this);
+
             Preference version = findPreference("version");
             version.setSummary(BuildConfig.VERSION_NAME);
             version.setOnPreferenceClickListener(this);
@@ -146,15 +152,6 @@ public class SettingsActivity extends BaseActivity {
                     return true;
                 }
             });
-
-            findPreference("show_about")
-                    .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                        @Override
-                        public boolean onPreferenceClick(Preference preference) {
-                            showAbout();
-                            return true;
-                        }
-                    });
 
             findPreference("pref_app_daynight_mode")
                     .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -367,42 +364,6 @@ public class SettingsActivity extends BaseActivity {
             it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getActivity().startActivity(it);
             getActivity().finish();
-        }
-
-        private void showAbout() {
-            SingleJust.create(new SingleOnSubscribe<String>() {
-                @Override
-                public void subscribe(SingleEmitter<String> e) throws Exception {
-                    Context context = getActivity();
-                    StringBuilder sb = new StringBuilder();
-                    try {
-                        PackageInfo packageInfo = getActivity().getPackageManager()
-                                .getPackageInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-                        sb.append("GitCommitId: ").append(packageInfo.applicationInfo.metaData.getString("GIT_COMMIT_ID"));
-                    } catch (Exception ee) {
-                        ee.printStackTrace();
-                    }
-                    e.onSuccess(sb.toString());
-                }
-            }).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SingleObserver<String>() {
-                        @Override
-                        public void onSubscribe(Disposable d) {
-
-                        }
-
-                        @Override
-                        public void onSuccess(String value) {
-                            showTextDialog(R.string.show_about, value);
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-
-                        }
-                    });
-
         }
 
         @Override

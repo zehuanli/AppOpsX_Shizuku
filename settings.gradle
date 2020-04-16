@@ -1,1 +1,1 @@
-include ':app', ':opsxlib', ':apicompat'
+include ':app', ':apicompat'

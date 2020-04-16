@@ -5,7 +5,7 @@ import android.preference.PreferenceManager;
 import android.util.SparseIntArray;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.OpsResult;
+import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;

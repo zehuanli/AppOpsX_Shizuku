@@ -16,20 +16,21 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.text.BidiFormatter;
 import androidx.core.util.Pair;
 
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.OpEntry;
-import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.common.PackageOps;
+import com.zzzmode.appopsx.common.common.OpEntry;
+import com.zzzmode.appopsx.common.common.OpsResult;
+import com.zzzmode.appopsx.common.common.PackageOps;
 import com.zzzmode.appopsx.ui.constraint.AppOps;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.AppInfo;
@@ -206,7 +207,6 @@ public class Helper {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N_MR1)
     private static void updataShortcuts(Context context, List<AppInfo> items) {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         List<ShortcutInfo> shortcutInfoList = new ArrayList<>();
@@ -425,10 +425,14 @@ public class Helper {
                                 for (int i = 0; i < size; i++) {
                                     int opk = ALWAYS_SHOWN_OP.keyAt(i);
                                     if (hasOp.indexOfKey(opk) < 0) {
-                                        OpEntry op = new OpEntry(opk, AppOpsMode.MODE_ALLOWED, 0, 0, 0, 0, null);
-                                        OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
-                                        if (opEntryInfo != null) {
-                                            list.add(opEntryInfo);
+                                        try {
+                                            int mode = ShizukuManager.getInstance(context).checkOperation(opk, opse.getPackageName());
+                                            OpEntry op = new OpEntry(opk, mode, 0, 0, 0, 0, null);
+                                            OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
+                                            if (opEntryInfo != null) {
+                                                list.add(opEntryInfo);
+                                            }
+                                        } catch (IllegalArgumentException ignored) {
                                         }
                                     }
                                 }
@@ -506,7 +510,6 @@ public class Helper {
                 return map;
             }
         }).flatMap(new Function<Map<String, PackageOps>, ObservableSource<List<AppPermissions>>>() {
-
             public ObservableSource<List<AppPermissions>> apply(final Map<String, PackageOps> result) throws Exception {
                 return getInstalledApps(context, loadSysapp).map(
                         new Function<List<AppInfo>, List<AppPermissions>>() {
@@ -518,7 +521,6 @@ public class Helper {
                                     for (AppInfo appInfo : appInfos) {
                                         AppPermissions p = new AppPermissions();
                                         p.appInfo = appInfo;
-
                                         PackageOps packageOps = result.get(appInfo.packageName);
                                         if (packageOps != null) {
                                             List<OpEntry> ops = packageOps.getOps();

@@ -33,6 +33,7 @@ static def checkEmpty(String... str) {
     return false
 }
 
+/*
 task releaseSigningConfigs {
 
     println("-----releaseSigningConfigs----")
@@ -55,7 +56,7 @@ task releaseSigningConfigs {
     } catch (Throwable throwable) {
         throwable.printStackTrace()
     }
-}
+}*/
 
 
 task pushApkFile {

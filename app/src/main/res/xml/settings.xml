@@ -67,14 +67,8 @@
         android:data="https://github.com/8enet/AppOpsX"/>
     </androidx.preference.Preference>
     <androidx.preference.Preference
-      android:key="translate"
-      android:title="@string/translate"
-      android:summary="https://crowdin.com/project/appopsx">
-      <intent
-        android:action="android.intent.action.VIEW"
-        android:data="https://crowdin.com/project/appopsx"/>
-    </androidx.preference.Preference>
-
+        android:key="commit"
+        android:title="@string/commit"/>
   </androidx.preference.PreferenceCategory>
 
 
@@ -82,12 +76,17 @@
     android:key="others"
     android:title="@string/others">
     <androidx.preference.Preference
+      android:key="translate"
+      android:title="@string/translate"
+      android:summary="https://crowdin.com/project/appopsx">
+    <intent
+        android:action="android.intent.action.VIEW"
+        android:data="https://crowdin.com/project/appopsx"/>
+  </androidx.preference.Preference>
+    <androidx.preference.Preference
       android:key="acknowledgments"
       android:summary="@string/acknowledgment_description"
       android:title="@string/acknowledgment"/>
-    <androidx.preference.Preference
-      android:key="show_about"
-      android:title="@string/show_about"/>
     <androidx.preference.Preference
       android:key="help"
       android:title="@string/help"/>

@@ -31,7 +31,7 @@
   <string name="auto_ignore_permission_title">自动关闭权限模板</string>
   <string name="auto_ignore_permission_temp_summary">开启自动关闭权限后，只有选中的权限会默认关闭。</string>
 
-  <string name="show_about">关于</string>
+  <string name="commit">Commit</string>
   <string name="log_empty">没有日志</string>
 
 

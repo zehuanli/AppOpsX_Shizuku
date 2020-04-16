@@ -25,7 +25,7 @@
   <string name="auto_ignore_summary">Автоматически отключать все разрешения после установки приложения</string>
   <string name="auto_ignore_permission_title">Шаблон для автоматического отключения разрешений</string>
   <string name="auto_ignore_permission_temp_summary">Только выбранные разрешения будут отключены, если функция автоматического отключения активна</string>
-  <string name="show_about">Показать лог</string>
+  <string name="commit">Показать лог</string>
   <string name="log_empty">Нет логов</string>
   <string name="show_sys_apps">Отображать системные приложения</string>
   <string name="show_sys_apps_summary">Отображать системные приложения в списке приложений</string>

@@ -6,7 +6,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.widget.Toast;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.OpsResult;
+import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;

@@ -25,7 +25,7 @@
   <string name="auto_ignore_summary">Automaticky vypnout všechna oprávnění po instalaci aplikace</string>
   <string name="auto_ignore_permission_title">Šablona automaticky vypnutých oprávnění</string>
   <string name="auto_ignore_permission_temp_summary">Vybraná oprávnění budou vypnuta, je-li povolena funkce „Automaticky ignorovat oprávnění“</string>
-  <string name="show_about">Zobrazit logy</string>
+  <string name="commit">Zobrazit logy</string>
   <string name="log_empty">Žádné logy</string>
   <string name="show_sys_apps">Zobrazovat systémové aplikace</string>
   <string name="show_sys_apps_summary">Zahrnout do seznamu systémové aplikace</string>

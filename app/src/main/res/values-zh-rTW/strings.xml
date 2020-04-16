@@ -25,7 +25,7 @@
   <string name="auto_ignore_summary">應用安裝後自動關閉(忽略)擁有權限</string>
   <string name="auto_ignore_permission_title">自動關閉權限範本</string>
   <string name="auto_ignore_permission_temp_summary">開啟自動關閉許可權後，只有選中的許可權會預設關閉。</string>
-  <string name="show_about">顯示日誌</string>
+  <string name="commit">顯示日誌</string>
   <string name="log_empty">沒有日誌</string>
   <string name="show_sys_apps">顯示系統應用</string>
   <string name="show_sys_apps_summary">在應用清單中顯示系統應用</string>

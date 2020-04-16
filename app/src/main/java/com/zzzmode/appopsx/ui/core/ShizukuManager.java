@@ -16,10 +16,10 @@ import android.os.UserHandle;
 import android.widget.Toast;
 
 import com.android.internal.app.IAppOpsService;
-import com.zzzmode.appopsx.common.OpEntry;
-import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.common.PackageOps;
-import com.zzzmode.appopsx.common.ReflectUtils;
+import com.zzzmode.appopsx.common.common.OpEntry;
+import com.zzzmode.appopsx.common.common.OpsResult;
+import com.zzzmode.appopsx.common.common.PackageOps;
+import com.zzzmode.appopsx.common.common.ReflectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +88,15 @@ public class ShizukuManager {
         this.userId = userId;
     }
 
+    public int checkOperation(int opInt, String packageName) throws IllegalArgumentException {
+        int uid = getPackageUid(packageName, userId);
+        return appOpsService.checkOperation(opInt, uid, packageName);
+    }
+
+    public PackageInfo getPackageInfo(String packageName, int flags) throws RemoteException {
+        return getPackageInfo(packageName, flags, userId);
+    }
+
     public PackageInfo getPackageInfo(String packageName, int flags, int userId) throws RemoteException {
         checkShizuku();
         return packageManager.getPackageInfo(packageName, flags, userId);
@@ -139,8 +148,6 @@ public class ShizukuManager {
         appOpsService.setMode(opInt, uid, packageName, modeInt);
         return new OpsResult(new ArrayList<PackageOps>(), null);
     }
-
-
 
     public OpsResult getPackagesForOps(int[] ops) {
         checkShizuku();

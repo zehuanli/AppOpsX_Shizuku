@@ -16,23 +16,27 @@
 #   public *;
 #}
 
--keepattributes SourceFile,LineNumberTable
+#-keepattributes SourceFile,LineNumberTable
 
--keepclassmembers class * {
-   public <init> (org.json.JSONObject);
-}
+#-keepclassmembers class * {
+#   public <init> (org.json.JSONObject);
+#}
 
--keep public class com.zzzmode.appopsx.R$*{
-public static final int *;
-}
+#-keep public class com.zzzmode.appopsx.R$*{
+#    public static final int *;
+#}
 
 
--keep class com.zzzmode.** { *; }
+#-keep class com.zzzmode.** { *; }
 
--keep class com.umeng.** { *; }
--keep class a.a.a.** { *; }
+#-keep class com.umeng.** { *; }
+#-keep class a.a.a.** { *; }
 
--keep class android.support.v4.view.ViewPager$OnPageChangeListener {*;}
--keep class android.support.v4.view.ViewPager {*;}
--keep class android.support.v4.view.PagerAdapter {*;}
--keep class android.support.v7.widget.SearchView { *;}
+#-keep class android.support.v4.view.ViewPager$OnPageChangeListener {*;}
+#-keep class android.support.v4.view.ViewPager {*;}
+#-keep class android.support.v4.view.PagerAdapter {*;}
+#-keep class android.support.v7.widget.SearchView { *;}
+
+-keep class android.content.pm.** {*;}
+-keep class android.os.** {*;}
+-keep class com.android.internal.app.** {*;}

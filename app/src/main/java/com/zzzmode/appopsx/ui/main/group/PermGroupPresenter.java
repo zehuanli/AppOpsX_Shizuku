@@ -2,7 +2,7 @@ package com.zzzmode.appopsx.ui.main.group;
 
 import android.content.Context;
 import android.preference.PreferenceManager;
-import com.zzzmode.appopsx.common.OpsResult;
+import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;

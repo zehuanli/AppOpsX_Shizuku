@@ -27,7 +27,7 @@
   <string name="auto_ignore_summary">All permissions auto turn off after application installed</string>
   <string name="auto_ignore_permission_title">Close permission template automatically</string>
   <string name="auto_ignore_permission_temp_summary">Only selected permissions will be turned off once auto turn off permission function is on</string>
-  <string name="show_about">About</string>
+  <string name="commit">Commit</string>
   <string name="log_empty">No logs</string>
   <string name="show_sys_apps">Show system apps</string>
   <string name="show_sys_apps_summary">Show system apps in the list</string>

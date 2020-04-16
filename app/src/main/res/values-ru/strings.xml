@@ -6,7 +6,7 @@
   <string name="menu_setting">Настройки</string>
   <string name="menu_permission_sort">Разрешения приложений</string>
   <string name="menu_backup">Экспорт/восстановление разрешений</string>
-  <string name="menu_always_shown_premission">Показать разрешения по умолчанию</string>
+  <string name="menu_always_shown_permission">Показать разрешения по умолчанию</string>
   <string name="menu_show_op_perm">Показать детали разрешений</string>
   <string name="menu_show_op_name">Отображение OpName</string>
   <string name="menu_show_perm_time">Отображать время последнего использования разрешений</string>

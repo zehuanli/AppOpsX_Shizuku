@@ -476,9 +476,12 @@ public class Helper {
         return null;
     }
 
+    static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp) {
+        return getAllAppPermissions(context, loadSysapp, false);
+    }
 
-    static Observable<AppPermissions> getAllAppPermissions(final Context context,
-                                                           final boolean loadSysapp) {
+    // TODO: Implement always shown perms for group permissions
+    static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp, final boolean alwaysShownPerm) {
         return Observable.create(new ObservableOnSubscribe<OpsResult>() {
             @Override
             public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
@@ -593,8 +596,8 @@ public class Helper {
     }
 
     public static Single<List<PermissionGroup>> getPermissionGroup(final Context context,
-                                                                   final boolean loadSysapp, final boolean showIgnored) {
-        return getAllAppPermissions(context, loadSysapp)
+                                                                   final boolean loadSysapp, final boolean showIgnored, final boolean alwaysShownPerm) {
+        return getAllAppPermissions(context, loadSysapp, alwaysShownPerm)
                 .collect(new Callable<Map<Integer, List<AppPermissions>>>() {
                     @Override
                     public Map<Integer, List<AppPermissions>> call() throws Exception {

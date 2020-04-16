@@ -6,7 +6,7 @@
   <string name="menu_setting">Settings</string>
   <string name="menu_permission_sort">App permissions</string>
   <string name="menu_backup">Export/restore permission</string>
-  <string name="menu_always_shown_premission">Display always-shown permissions</string>
+  <string name="menu_always_shown_permission">Always-shown permissions</string>
   <string name="menu_show_op_perm">Display permission details</string>
   <string name="menu_show_op_name">Display OpName</string>
   <string name="menu_show_perm_time">Display last use time of permissions</string>
@@ -91,4 +91,5 @@
   <string name="lang_auto">Auto</string>
   <string name="show_ignored_app">Display ignored apps</string>
   <string name="action_users">Users</string>
+  <string name="menu_always_shown_permission_summary">Display \"always-shown permissions\" in the permission list</string>
 </resources>

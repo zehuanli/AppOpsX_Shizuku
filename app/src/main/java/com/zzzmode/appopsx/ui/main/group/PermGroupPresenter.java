@@ -40,6 +40,9 @@ class PermGroupPresenter {
 
     boolean showIgnored = PreferenceManager.getDefaultSharedPreferences(context)
         .getBoolean("key_g_show_ignored", false);
+
+    boolean alwaysShownPerm = PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean("key_always_shown_perms", false);
     
     subscriber = new ResourceSingleObserver<List<PermissionGroup>>() {
       @Override
@@ -55,7 +58,7 @@ class PermGroupPresenter {
 
     };
 
-    Helper.getPermissionGroup(context, showSysApp, showIgnored)
+    Helper.getPermissionGroup(context, showSysApp, showIgnored, alwaysShownPerm)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(subscriber);

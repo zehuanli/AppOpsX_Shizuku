@@ -149,8 +149,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
       case R.id.action_reset:
         mPresenter.reset();
         return true;
-      case R.id.action_always_shown_perm:
-        return true;
       case R.id.action_open_all:
         changeAll(AppOpsMode.MODE_ALLOWED);
         break;
@@ -175,7 +173,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
 
     getMenuInflater().inflate(R.menu.app_menu, menu);
 
-    MenuItem menuAlwaysShownPerm = menu.findItem(R.id.action_always_shown_perm);
     MenuItem menuShowOpDesc = menu.findItem(R.id.action_show_op_perm);
     MenuItem menuShowOpName = menu.findItem(R.id.action_show_op_name);
     MenuItem menuShowPremTime = menu.findItem(R.id.action_show_perm_time);
@@ -183,7 +180,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 
     final Map<MenuItem, String> menus = new HashMap<>();
-    menus.put(menuAlwaysShownPerm, "key_always_shown_prems");
     menus.put(menuShowOpDesc, "key_show_op_desc");
     menus.put(menuShowOpName, "key_show_op_name");
     menus.put(menuShowPremTime, "key_show_perm_time");

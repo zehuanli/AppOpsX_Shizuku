@@ -6,7 +6,7 @@
   <string name="menu_setting">設置</string>
   <string name="menu_permission_sort">應用許可權</string>
   <string name="menu_backup">匯出/恢復許可權</string>
-  <string name="menu_always_shown_premission">顯示預設許可權</string>
+  <string name="menu_always_shown_permission">顯示預設許可權</string>
   <string name="menu_show_op_perm">顯示許可權詳情</string>
   <string name="menu_show_op_name">顯示OpName</string>
   <string name="menu_show_perm_time">顯示許可權最後使用時間</string>

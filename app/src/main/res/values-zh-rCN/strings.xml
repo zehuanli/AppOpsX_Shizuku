@@ -4,7 +4,7 @@
   <string name="menu_setting">设置</string>
   <string name="menu_permission_sort">应用权限</string>
   <string name="menu_backup">导出/恢复权限</string>
-  <string name="menu_always_shown_premission">展示始终显示的权限</string>
+  <string name="menu_always_shown_permission">始终显示的权限</string>
   <string name="menu_show_op_perm">显示权限详情</string>
   <string name="menu_show_op_name">显示OpName</string>
   <string name="menu_show_perm_time">显示权限最后使用时间</string>
@@ -121,4 +121,5 @@
 
   <string name="show_ignored_app">显示已忽略的应用</string>
   <string name="action_users">用户</string>
+    <string name="menu_always_shown_permission_summary">在权限列表中展示所有“始终显示的权限\"</string>
 </resources>

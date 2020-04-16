@@ -6,7 +6,7 @@
   <string name="menu_setting">Nastavení</string>
   <string name="menu_permission_sort">Oprávnění aplikace</string>
   <string name="menu_backup">Exportovat/obnovit oprávnění</string>
-  <string name="menu_always_shown_premission">Zobrazit výchozí oprávnění</string>
+  <string name="menu_always_shown_permission">Zobrazit výchozí oprávnění</string>
   <string name="menu_show_op_perm">Zobrazit podrobnosti oprávnění</string>
   <string name="menu_show_op_name">Zobrazit OpName</string>
   <string name="menu_show_perm_time">Zobrazit čas posledního použití oprávnění</string>

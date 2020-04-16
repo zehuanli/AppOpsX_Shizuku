@@ -6,7 +6,7 @@
   <string name="menu_setting">Configurar</string>
   <string name="menu_permission_sort">Para aplicar permisos</string>
   <string name="menu_backup">Exportación y restaurar los derechos</string>
-  <string name="menu_always_shown_premission">Mostrar los permisos predeterminados</string>
+  <string name="menu_always_shown_permission">Mostrar los permisos predeterminados</string>
   <string name="menu_show_op_perm">Mostrar información de permisos</string>
   <string name="menu_show_op_name">Pantalla OpName</string>
   <string name="menu_show_perm_time">Mostrar los permisos utilizados la última vez</string>

@@ -1,6 +1,5 @@
 package com.zzzmode.appopsx.ui.main.group;
 
-import android.app.AppOpsManager;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -20,7 +19,7 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.widget.CommonDivderDecorator;
@@ -200,8 +199,8 @@ public class PermissionGroupActivity extends BaseActivity implements
 
 
   @Override
-  public void changeTitle(int groupPosition, int childPosition, boolean allowed) {
-    myItemAdapter.changeTitle(groupPosition, allowed);
+  public void changeTitle(int groupPosition, int childPosition, int inc) {
+    myItemAdapter.changeTitle(groupPosition, inc);
     mRecyclerViewExpandableItemManager.notifyChildItemChanged(groupPosition, childPosition);
     mRecyclerViewExpandableItemManager.notifyGroupItemChanged(groupPosition);
   }
@@ -266,11 +265,14 @@ public class PermissionGroupActivity extends BaseActivity implements
   @Override
   public boolean onMenuItemClick(MenuItem item) {
     switch (item.getItemId()) {
-      case R.id.action_close_all:
-        changeAll(AppConstraint.MODE_IGNORED);
-        return true;
       case R.id.action_open_all:
-        changeAll(AppConstraint.MODE_ALLOWED);
+        changeAll(AppOpsMode.MODE_ALLOWED);
+        return true;
+      case R.id.action_close_all:
+        changeAll(AppOpsMode.MODE_IGNORED);
+        return true;
+      case R.id.action_foreground_all:
+        changeAll(AppOpsMode.MODE_FOREGROUND);
         return true;
     }
     return super.onContextItemSelected(item);

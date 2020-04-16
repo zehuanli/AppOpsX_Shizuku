@@ -4,15 +4,17 @@
   <string name="menu_setting">设置</string>
   <string name="menu_permission_sort">应用权限</string>
   <string name="menu_backup">导出/恢复权限</string>
-  <string name="menu_show_hide_premission">显示默认权限</string>
+  <string name="menu_always_shown_premission">展示始终显示的权限</string>
   <string name="menu_show_op_perm">显示权限详情</string>
   <string name="menu_show_op_name">显示OpName</string>
   <string name="menu_show_perm_time">显示权限最后使用时间</string>
   <string name="menu_open_all">允许所有权限</string>
   <string name="menu_close_all">忽略所有权限</string>
+  <string name="menu_foreground_all">前台允许所有权限</string>
 
   <string name="open_all_perms">允许所有</string>
   <string name="close_all_perms">忽略所有</string>
+  <string name="foreground_all_perms">前台允许所有</string>
 
   <string name="no_perms">此应用暂时没有使用任何权限</string>
 
@@ -29,21 +31,12 @@
   <string name="auto_ignore_permission_title">自动关闭权限模板</string>
   <string name="auto_ignore_permission_temp_summary">开启自动关闭权限后，只有选中的权限会默认关闭。</string>
 
-  <string name="allow_bg_remote">允许后台运行</string>
-  <string name="allow_bg_remote_summary">允许后台运行可以减少申请root弹窗授权的次数，部分手机上SuperSU全局默认允许AppOpsX时也会经常出现授权提示。</string>
-
   <string name="show_about">关于</string>
   <string name="log_empty">没有日志</string>
 
 
   <string name="show_sys_apps">显示系统应用</string>
   <string name="show_sys_apps_summary">在应用列表中显示系统应用</string>
-
-  <string name="use_adb_mode">使用ADB模式</string>
-  <string name="use_adb_mode_summary">使用ADB模式无需Root权限，只要在开发者选项中开启[网络ADB调试]即可\n或者连接电脑后输入adb tcpip %1$d</string>
-
-  <string name="use_adb_port">选择ADB端口</string>
-  <string name="use_adb_port_summary">当前选择连接的adb端口:%1$d</string>
 
 
   <string name="app_sort_type">应用排序方式</string>
@@ -54,12 +47,6 @@
   <string name="app_daynight_mode_summary">该设置在下次启动时生效</string>
 
   <string name="app_language">切换语言</string>
-
-  <string name="close_bg_server_summary">关闭后台服务</string>
-  <string name="close_bg_server_title">部分情况下点击此选项可以改善连接失败的问题\n如果使用正常请不要点击此项</string>
-
-  <string name="root_over_adb_mode">Root兼容模式</string>
-  <string name="root_over_adb_mode_summary">Root模式不能正常使用时可以开启此选型</string>
 
   <string name="disable_toast">已忽略[ %1$s ]的 %2$d 权限</string>
   <string name="permission_count">已授权 %1$d 个应用 (共 %2$d 个)</string>
@@ -120,34 +107,17 @@
   <string name="sort_by_last_updated_time">按最后更新时间排序</string>
 
 
-  <string name="error_no_adb">连接失败！\n解决方法:\n1.在开发者选项中开启ADB调试或者开启网络ADB调试\n2.连接PC端后在终端中输入adb tcpip %1$d \n3.开启USB调试，连接电脑，复制以下命令在终端中执行\nadb shell sh /sdcard/Android/data/com.zzzmode.appopsx/opsx.sh</string>
-  <string name="error_no_su">连接失败！\n请检查手机是否已Root，没有Root可以在设置中修改使用ADB模式。</string>
-  <string name="error_su_timeout">错误，请检查是否授予了Root权限。</string>
-  <string name="error_connect_fail">连接失败！\n解决方法:\nA.在设置中开启【Root兼容模式】试试。\nB.使用其他Root授权应用，比如SuperSU试试。\nC.如果还是不行请尝试关闭SElinux(出于安全考虑，请谨慎选择!)\n请查看帮助</string>
-
-  <string name="shell_start">脚本启动</string>
-  <string name="shell_start_description">使用命令方式启动，无须Root权限和设置ADB端口</string>
-  <string name="copied_hint">已复制到剪贴板</string>
-  <string name="shell_cmd_help">开启USB调试，连接电脑，复制以下命令在终端中执行\n%1$s</string>
-
-  <string name="shell_cmd">adb shell sh /sdcard/Android/data/com.zzzmode.appopsx/opsx.sh &amp;</string>
   <string name="never_used">(从未使用)</string>
   <string name="reject_prefix">拒绝于</string>
 
   <string name="menu_app_info">应用信息</string>
-
-  <string name="with_root_network">显示网络权限</string>
 
   <string name="menu_stats">权限使用情况</string>
   <string name="perms_count">%1$s (已使用 %2$d 次)</string>
 
 
   <string name="lang_auto">默认</string>
-  <string name="bg_closed">已关闭</string>
 
-
-  <string name="other_op_hint">此操作修改的是非标准appops权限，该项重启后会失效，请注意备份!</string>
-  <string name="other_op_stop_show">不再提示</string>
 
   <string name="show_ignored_app">显示已忽略的应用</string>
   <string name="action_users">用户</string>

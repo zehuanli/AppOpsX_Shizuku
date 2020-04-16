@@ -1,6 +1,5 @@
 package com.zzzmode.appopsx.ui.main.backup;
 
-import android.app.AppOpsManager;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -8,7 +7,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.PreAppInfo;
@@ -235,7 +234,7 @@ class ConfigPresenter {
         .flatMap(new Function<PreAppInfo, ObservableSource<OpsResult>>() {
           @Override
           public ObservableSource<OpsResult> apply(@NonNull PreAppInfo appInfo) throws Exception {
-            return Helper.setModes(context, appInfo.getPackageName(), AppConstraint.MODE_IGNORED,
+            return Helper.setModes(context, appInfo.getPackageName(), AppOpsMode.MODE_IGNORED,
                 appInfo.getOps());
           }
         }).subscribeOn(Schedulers.io())

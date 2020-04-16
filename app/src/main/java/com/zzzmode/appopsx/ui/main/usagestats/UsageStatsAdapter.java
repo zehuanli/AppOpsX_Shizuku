@@ -18,8 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.OtherOp;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
 import com.zzzmode.appopsx.ui.model.AppInfo;
@@ -75,16 +74,12 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
         } else {
             holder.tvLastTime.setText(R.string.never_used);
         }
-        if (OtherOp.isSupportCount()) {
-            holder.tvPermName.setText(holder.tvPermName.getResources().getString(R.string.perms_count, pair.second.opPermsLab, pair.second.opEntry.getAllowedCount()));
-        } else {
-            holder.tvPermName.setText(pair.second.opPermsLab);
-        }
+        holder.tvPermName.setText(pair.second.opPermsLab);
         holder.itemView.setTag(holder);
         holder.itemView.setOnClickListener(this);
 
         holder.pair = pair;
-        holder.spinner.setSelection(AppConstraint.OP_MODE_INDEX_MAP.getOrDefault(pair.second.mode, 0));
+        holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(pair.second.mode, 0));
         holder.initialized = true;
     }
 
@@ -141,9 +136,9 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
 
             op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
             op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppConstraint.MODE_ALLOWED);
-                put(op_modes.get(1), AppConstraint.MODE_IGNORED);
-                put(op_modes.get(2), AppConstraint.MODE_FOREGROUND);
+                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
+                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
+                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
             }};
 
             imgIcon = itemView.findViewById(R.id.app_icon);

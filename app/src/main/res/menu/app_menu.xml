@@ -3,10 +3,10 @@
   xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <item
-    android:id="@+id/action_hide_perm"
+    android:id="@+id/action_always_shown_perm"
     app:showAsAction="never"
     android:checkable="true"
-    android:title="@string/menu_show_hide_premission"/>
+    android:title="@string/menu_always_shown_premission"/>
   <item
     android:id="@+id/action_show_op_perm"
     app:showAsAction="never"
@@ -30,6 +30,10 @@
     android:id="@+id/action_close_all"
     app:showAsAction="never"
     android:title="@string/menu_close_all"/>
+  <item
+      android:id="@+id/action_foreground_all"
+      app:showAsAction="never"
+      android:title="@string/menu_foreground_all"/>
   <item
     android:id="@+id/action_app_info"
     app:showAsAction="never"

@@ -13,7 +13,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 
 import java.util.ArrayList;
@@ -123,7 +123,7 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
 
             holder.opEntryInfo = opEntryInfo;
             holder.permPresenter = permPresenter;
-            holder.spinner.setSelection(AppConstraint.OP_MODE_INDEX_MAP.getOrDefault(opEntryInfo.mode, 0));
+            holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(opEntryInfo.mode, 0));
             holder.initialized = true;
         }
     }
@@ -151,9 +151,9 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
 
             op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
             op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppConstraint.MODE_ALLOWED);
-                put(op_modes.get(1), AppConstraint.MODE_IGNORED);
-                put(op_modes.get(2), AppConstraint.MODE_FOREGROUND);
+                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
+                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
+                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
             }};
 
             icon = itemView.findViewById(R.id.img_group);

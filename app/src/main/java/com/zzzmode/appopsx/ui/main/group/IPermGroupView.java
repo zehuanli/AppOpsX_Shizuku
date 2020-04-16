@@ -7,7 +7,7 @@ import java.util.List;
  * Created by zl on 2017/7/17.
  */
 interface IPermGroupView {
-  void changeTitle(int groupPosition,int childPosition,boolean allowed);
+  void changeTitle(int groupPosition,int childPosition, int inc);
   void refreshItem(int groupPosition,int childPosition);
   void showList(List<PermissionGroup> value);
   void showError(Throwable e);

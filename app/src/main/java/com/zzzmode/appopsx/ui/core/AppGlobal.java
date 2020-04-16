@@ -13,6 +13,8 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import com.zzzmode.appopsx.BuildConfig;
+import com.zzzmode.appopsx.ShizukuManager;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -41,7 +43,7 @@ public class AppGlobal extends Application implements Application.ActivityLifecy
     LangHelper.updateLanguage(this);
     registerActivityLifecycleCallbacks(this);
     Helper.updataShortcuts(this);
-    AppOpsx.getInstance(getApplicationContext());
+    ShizukuManager.getInstance(getApplicationContext());
     installReceiver();
 
   }

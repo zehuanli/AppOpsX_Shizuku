@@ -11,6 +11,7 @@ import android.content.pm.UserInfo;
 import android.os.Build;
 import android.os.IUserManager;
 import android.os.Parcelable;
+import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.Log;
@@ -36,13 +37,14 @@ public class ShizukuManager {
     private static ShizukuManager sShizukuManager;
 
     private Context mContext;
+    private int userId;
 
     private boolean initialized = false;
     private IPackageManager packageManager;
     private IAppOpsService appOpsService;
     private IUserManager userManager;
 
-    static ShizukuManager getInstance(Context context) {
+    public static ShizukuManager getInstance(Context context) {
         if (sShizukuManager == null) {
             synchronized (ShizukuManager.class) {
                 if (sShizukuManager == null) {
@@ -55,6 +57,7 @@ public class ShizukuManager {
 
     private ShizukuManager(Context context) {
         mContext = context;
+        userId = Process.myUid() / 100000;
         if (!ShizukuService.pingBinder()) {
             Toast.makeText(mContext, "WARNING: Shizuku server not running", Toast.LENGTH_LONG).show();
         } else if (mContext.checkSelfPermission(ShizukuApiConstants.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
@@ -83,27 +86,35 @@ public class ShizukuManager {
         initialized = true;
     }
 
-    PackageInfo getPackageInfo(String packageName, int flags, int userId) throws RemoteException {
+    public void setUserHandleId(int userId) {
+        this.userId = userId;
+    }
+
+    public PackageInfo getPackageInfo(String packageName, int flags, int userId) throws RemoteException {
         checkShizuku();
         return packageManager.getPackageInfo(packageName, flags, userId);
     }
 
-    PermissionInfo getPermissionInfo(String permissionName, String packageName, int flags) throws RemoteException {
+    public PermissionInfo getPermissionInfo(String permissionName, String packageName, int flags) throws RemoteException {
         checkShizuku();
         return packageManager.getPermissionInfo(permissionName, packageName, flags);
     }
 
-    List<PackageInfo> getInstalledPackages(int flags, int uid) throws RemoteException {
+    public List<PackageInfo> getInstalledPackages(int flags, int uid) throws RemoteException {
         checkShizuku();
         return packageManager.getInstalledPackages(flags, uid).getList();
     }
 
-    List<UserInfo> getUsers(boolean excludeDying) {
+    public List<UserInfo> getUsers(boolean excludeDying) {
         checkShizuku();
         return userManager.getUsers(excludeDying);
     }
 
-    OpsResult getOpsForPackage(String packageName, int userId) {
+    public OpsResult getOpsForPackage(String packageName) {
+        return getOpsForPackage(packageName, userId);
+    }
+
+    public OpsResult getOpsForPackage(String packageName, int userId) {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         List<Parcelable> opsForPackage = appOpsService.getOpsForPackage(uid, packageName, null);
@@ -120,14 +131,20 @@ public class ShizukuManager {
         return new OpsResult(packageOpses,null);
     }
 
-    OpsResult setOpsMode(String packageName, int opInt, int userId, int modeInt) {
+    public OpsResult setOpsMode(String packageName, int opInt, int modeInt) {
+        return setOpsMode(packageName, opInt, userId, modeInt);
+    }
+
+    public OpsResult setOpsMode(String packageName, int opInt, int userId, int modeInt) {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         appOpsService.setMode(opInt, uid, packageName, modeInt);
         return new OpsResult(new ArrayList<PackageOps>(), null);
     }
 
-    OpsResult getPackagesForOps(int[] ops) {
+
+
+    public OpsResult getPackagesForOps(int[] ops) {
         checkShizuku();
         List opsForPackage = appOpsService.getPackagesForOps(ops);
         ArrayList<PackageOps> packageOpses = new ArrayList<>();
@@ -140,7 +157,11 @@ public class ShizukuManager {
         return new OpsResult(packageOpses, null);
     }
 
-    OpsResult resetAllModes(int userId, String packageName) {
+    public OpsResult resetAllModes(String packageName) {
+        return resetAllModes(userId, packageName);
+    }
+
+    public OpsResult resetAllModes(int userId, String packageName) {
         checkShizuku();
         appOpsService.resetAllModes(userId, packageName);
         return new OpsResult(new ArrayList<PackageOps>(), null);

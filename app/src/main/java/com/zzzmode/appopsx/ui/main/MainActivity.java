@@ -29,8 +29,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.zzzmode.appopsx.R;
+import com.zzzmode.appopsx.ShizukuManager;
 import com.zzzmode.appopsx.ui.BaseActivity;
-import com.zzzmode.appopsx.ui.core.AppOpsx;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
 import com.zzzmode.appopsx.ui.core.Users;
@@ -359,7 +359,7 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
         getSupportActionBar().setSubtitle(user.name);
         Users.getInstance().setCurrentLoadUser(user);
 
-        AppOpsx.getInstance(getApplicationContext()).setUserHandleId(user.id);
+        ShizukuManager.getInstance(getApplicationContext()).setUserHandleId(user.id);
         LocalImageLoader.clear();
         loadData(true);
     }

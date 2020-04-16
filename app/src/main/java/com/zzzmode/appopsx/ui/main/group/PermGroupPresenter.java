@@ -1,10 +1,9 @@
 package com.zzzmode.appopsx.ui.main.group;
 
-import android.app.AppOpsManager;
 import android.content.Context;
 import android.preference.PreferenceManager;
 import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
@@ -74,8 +73,14 @@ class PermGroupPresenter {
         .subscribe(new ResourceObserver<OpsResult>() {
           @Override
           public void onNext(OpsResult value) {
-            if (prevMode != info.opEntryInfo.mode && (prevMode == AppConstraint.MODE_ALLOWED || info.opEntryInfo.mode == AppConstraint.MODE_ALLOWED)) {
-              mView.changeTitle(groupPosition, childPosition, info.opEntryInfo.mode == AppConstraint.MODE_ALLOWED);
+            if (prevMode != info.opEntryInfo.mode) {
+              if (prevMode == AppOpsMode.MODE_IGNORED) {
+                mView.changeTitle(groupPosition, childPosition, 1);
+              } else if (info.opEntryInfo.mode == AppOpsMode.MODE_IGNORED) {
+                mView.changeTitle(groupPosition, childPosition, -1);
+              } else {
+                mView.changeTitle(groupPosition, childPosition, 0);
+              }
             }
           }
 

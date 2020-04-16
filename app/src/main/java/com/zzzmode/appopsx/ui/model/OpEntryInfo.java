@@ -1,9 +1,10 @@
 package com.zzzmode.appopsx.ui.model;
 
-import android.app.AppOpsManager;
-import com.zzzmode.appopsx.common.FixCompat;
 import com.zzzmode.appopsx.common.OpEntry;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOps;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+
+import java.util.List;
 
 /**
  * Created by zl on 2016/11/18.
@@ -26,19 +27,19 @@ public class OpEntryInfo {
     if (opEntry != null) {
       this.opEntry = opEntry;
       this.mode = opEntry.getMode();
-      String[] sOpNames = FixCompat.sOpNames();
+      List<String> sOpNames = AppOps.sOpNames;
       if (sMaxLength == null && sOpNames != null) {
-        sMaxLength = sOpNames.length;
+        sMaxLength = sOpNames.size();
       }
 
       if (opEntry.getOp() < sMaxLength) {
-        String[] sOpPerms = FixCompat.sOpPerms();
+        List<String> sOpPerms = AppOps.sOpPerms;
 
         if (sOpNames != null) {
-          this.opName = sOpNames[opEntry.getOp()];
+          this.opName = sOpNames.get(opEntry.getOp());
         }
         if (sOpPerms != null) {
-          this.opPermsName = sOpPerms[opEntry.getOp()];
+          this.opPermsName = sOpPerms.get(opEntry.getOp());
         }
 
 
@@ -48,7 +49,7 @@ public class OpEntryInfo {
   }
 
   public boolean isAllowOrForeground() {
-    return this.mode == AppConstraint.MODE_ALLOWED || this.mode == AppConstraint.MODE_FOREGROUND;
+    return this.mode == AppOpsMode.MODE_ALLOWED || this.mode == AppOpsMode.MODE_FOREGROUND;
   }
 
   @Override

@@ -9,5 +9,9 @@
     android:id="@+id/action_close_all"
     app:showAsAction="never|collapseActionView"
     android:title="@string/close_all_perms"/>
+  <item
+      android:id="@+id/action_foreground_all"
+      app:showAsAction="never|collapseActionView"
+      android:title="@string/foreground_all_perms"/>
 
 </menu>

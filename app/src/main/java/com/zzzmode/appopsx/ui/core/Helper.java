@@ -1,6 +1,5 @@
 package com.zzzmode.appopsx.ui.core;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,11 +27,12 @@ import androidx.core.util.Pair;
 
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.FixCompat;
+import com.zzzmode.appopsx.ShizukuManager;
 import com.zzzmode.appopsx.common.OpEntry;
 import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.common.OtherOp;
 import com.zzzmode.appopsx.common.PackageOps;
+import com.zzzmode.appopsx.ui.constraint.AppOps;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.AppPermissions;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -74,52 +74,6 @@ import java.util.concurrent.Callable;
  */
 
 public class Helper {
-
-    public static final class permission_group {
-
-        public static final String AUDIO = "com.zzzmode.appopsx.permission-group.AUDIO";
-        public static final String DEVICE = "com.zzzmode.appopsx.permission-group.DEVICE";
-        public static final String OTHER = "com.zzzmode.appopsx.permission-group.OTHER";
-        public static final String GPS = "com.zzzmode.appopsx.permission-group.GPS";
-        public static final String CALLPHONE = "com.zzzmode.appopsx.permission-group.CALLPHONE";
-        public static final String VIBRATION = "com.zzzmode.appopsx.permission-group.VIBRATION";
-        public static final String NET = "com.zzzmode.appopsx.permission-group.NET";
-        public static final String WIFI = "com.zzzmode.appopsx.permission-group.WIFI";
-        public static final String NFC = "com.zzzmode.appopsx.permission-group.NFC";
-        public static final String SETTINGS = "com.zzzmode.appopsx.permission-group.SETTINGS";
-        public static final String NOTIFICATIONS = "com.zzzmode.appopsx.permission-group.NOTIFICATIONS";
-        public static final String CLIPBOARD = "com.zzzmode.appopsx.permission-group.CLIPBOARD";
-        public static final String FINGERPRINT = "com.zzzmode.appopsx.permission-group.FINGERPRINT";
-
-    }
-
-    private static final String[] RE_SORT_GROUPS =
-            {
-                    permission_group.GPS,
-                    Manifest.permission_group.LOCATION,
-                    Manifest.permission_group.CALENDAR,
-                    Manifest.permission_group.SMS,
-                    Manifest.permission_group.CONTACTS,
-                    Manifest.permission_group.CAMERA,
-                    permission_group.CALLPHONE,
-                    Manifest.permission_group.PHONE,
-                    Manifest.permission_group.STORAGE,
-                    Manifest.permission_group.SENSORS,
-                    permission_group.FINGERPRINT,
-                    Manifest.permission_group.MICROPHONE,
-                    permission_group.VIBRATION,
-                    permission_group.NET,
-                    permission_group.WIFI,
-                    permission_group.NFC,
-                    permission_group.SETTINGS,
-                    permission_group.NOTIFICATIONS,
-                    permission_group.CLIPBOARD,
-                    permission_group.AUDIO,
-                    permission_group.DEVICE,
-                    permission_group.OTHER,
-
-            };
-
     private static class PermGroupInfo {
 
         String title;
@@ -141,137 +95,32 @@ public class Helper {
         }
     }
 
-    private static final SparseIntArray NO_PERM_OP = new SparseIntArray();
-    private static final Map<String, String> FAKE_PERMS_GROUP = new HashMap<>();
-
+    private static final SparseIntArray ALWAYS_SHOWN_OP = new SparseIntArray();
     private static final Map<String, PermGroupInfo> PERMS_GROUPS = new HashMap<>();
 
     private static final PermGroupInfo OTHER_PERM_INFO = new PermGroupInfo(null,
-            permission_group.OTHER, R.drawable.perm_group_other);
+            AppOps.CustomPermissionGroup.OTHER, R.drawable.perm_group_other);
 
     static {
-        int[] ops = {2, 11, 12, 15, 22, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 44, 45,
-                46, 47, 48, 49, 50, 58, 61, 63, 65, 69};
-        for (int op : ops) {
-            NO_PERM_OP.put(op, op);
+        for (int op : AppOps.ALWAYS_SHOWN_OP) {
+            ALWAYS_SHOWN_OP.put(op, op);
         }
 
-        FAKE_PERMS_GROUP.put("COARSE_LOCATION", Manifest.permission_group.LOCATION);
-        FAKE_PERMS_GROUP.put("FINE_LOCATION", permission_group.GPS);
-        FAKE_PERMS_GROUP.put("GPS", permission_group.GPS);
-        FAKE_PERMS_GROUP.put("NEIGHBORING_CELLS", Manifest.permission_group.LOCATION);
-        FAKE_PERMS_GROUP.put("MONITOR_LOCATION", Manifest.permission_group.LOCATION);
-        FAKE_PERMS_GROUP.put("MONITOR_HIGH_POWER_LOCATION", Manifest.permission_group.LOCATION);
-
-        FAKE_PERMS_GROUP.put("READ_CALL_LOG", permission_group.CALLPHONE);
-        FAKE_PERMS_GROUP.put("WRITE_CALL_LOG", permission_group.CALLPHONE);
-        FAKE_PERMS_GROUP.put("CALL_PHONE", permission_group.CALLPHONE);
-        FAKE_PERMS_GROUP.put("PROCESS_OUTGOING_CALLS", permission_group.CALLPHONE);
-
-        FAKE_PERMS_GROUP.put("READ_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("WRITE_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("RECEIVE_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("RECEIVE_EMERGECY_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("RECEIVE_MMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("RECEIVE_WAP_PUSH", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("SEND_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("READ_ICC_SMS", Manifest.permission_group.SMS);
-        FAKE_PERMS_GROUP.put("WRITE_ICC_SMS", Manifest.permission_group.SMS);
-
-        FAKE_PERMS_GROUP.put("PLAY_AUDIO", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("TAKE_MEDIA_BUTTONS", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("TAKE_AUDIO_FOCUS", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_MASTER_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_VOICE_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_RING_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_MEDIA_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_ALARM_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_NOTIFICATION_VOLUME", permission_group.AUDIO);
-        FAKE_PERMS_GROUP.put("AUDIO_BLUETOOTH_VOLUME", permission_group.AUDIO);
-
-        FAKE_PERMS_GROUP.put("VIBRATE", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("MUTE_MICROPHONE", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("TOAST_WINDOW", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("PROJECT_MEDIA", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("ACTIVATE_VPN", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("WRITE_WALLPAPER", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("ASSIST_STRUCTURE", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("ASSIST_SCREENSHOT", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("MOCK_LOCATION", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("TURN_ON_SCREEN", permission_group.DEVICE);
-        FAKE_PERMS_GROUP.put("RUN_IN_BACKGROUND", permission_group.DEVICE);
-
-        FAKE_PERMS_GROUP.put("ACCESS_PHONE_DATA", permission_group.NET);
-        FAKE_PERMS_GROUP.put("ACCESS_WIFI_NETWORK", permission_group.NET);
-
-        FAKE_PERMS_GROUP.put("VIBRATE", permission_group.VIBRATION);
-
-        FAKE_PERMS_GROUP.put("WIFI_SCAN", permission_group.WIFI);
-        FAKE_PERMS_GROUP.put("WIFI_CHANGE", permission_group.WIFI);
-
-        FAKE_PERMS_GROUP.put("NFC_CHANGE", permission_group.NFC);
-
-        FAKE_PERMS_GROUP.put("WRITE_SETTINGS", permission_group.SETTINGS);
-
-        FAKE_PERMS_GROUP.put("ACCESS_NOTIFICATIONS", permission_group.NOTIFICATIONS);
-        FAKE_PERMS_GROUP.put("POST_NOTIFICATION", permission_group.NOTIFICATIONS);
-
-        FAKE_PERMS_GROUP.put("READ_CLIPBOARD", permission_group.CLIPBOARD);
-        FAKE_PERMS_GROUP.put("WRITE_CLIPBOARD", permission_group.CLIPBOARD);
-
-        FAKE_PERMS_GROUP.put("USE_FINGERPRINT", permission_group.FINGERPRINT);
-
-        PERMS_GROUPS.put(Manifest.permission_group.CALENDAR,
-                new PermGroupInfo(null, Manifest.permission_group.CALENDAR,
-                        R.drawable.perm_group_calendar));
-        PERMS_GROUPS.put(Manifest.permission_group.CAMERA,
-                new PermGroupInfo(null, Manifest.permission_group.CAMERA, R.drawable.perm_group_camera));
-        PERMS_GROUPS.put(Manifest.permission_group.CONTACTS,
-                new PermGroupInfo(null, Manifest.permission_group.CONTACTS,
-                        R.drawable.perm_group_contacts));
-        PERMS_GROUPS.put(Manifest.permission_group.LOCATION,
-                new PermGroupInfo(null, Manifest.permission_group.LOCATION,
-                        R.drawable.perm_group_location));
-        PERMS_GROUPS.put(Manifest.permission_group.MICROPHONE,
-                new PermGroupInfo(null, Manifest.permission_group.MICROPHONE,
-                        R.drawable.perm_group_microphone));
-        PERMS_GROUPS.put(Manifest.permission_group.PHONE,
-                new PermGroupInfo(null, Manifest.permission_group.PHONE, R.drawable.ic_perm_device_info));
-        PERMS_GROUPS.put(Manifest.permission_group.SENSORS,
-                new PermGroupInfo(null, Manifest.permission_group.SENSORS, R.drawable.perm_group_sensors));
-        PERMS_GROUPS.put(Manifest.permission_group.SMS,
-                new PermGroupInfo(null, Manifest.permission_group.SMS, R.drawable.perm_group_sms));
-        PERMS_GROUPS.put(Manifest.permission_group.STORAGE,
-                new PermGroupInfo(null, Manifest.permission_group.STORAGE, R.drawable.perm_group_storage));
-
-        PERMS_GROUPS.put(permission_group.AUDIO,
-                new PermGroupInfo(null, permission_group.AUDIO, R.drawable.perm_group_audio));
-        PERMS_GROUPS.put(permission_group.DEVICE,
-                new PermGroupInfo(null, permission_group.DEVICE, R.drawable.perm_group_device));
-        PERMS_GROUPS.put(permission_group.OTHER,
-                new PermGroupInfo(null, permission_group.OTHER, R.drawable.perm_group_other));
-        PERMS_GROUPS.put(permission_group.GPS,
-                new PermGroupInfo(null, permission_group.GPS, R.drawable.perm_group_gps));
-        PERMS_GROUPS.put(permission_group.CALLPHONE,
-                new PermGroupInfo(null, permission_group.CALLPHONE, R.drawable.perm_group_callphone));
-        PERMS_GROUPS.put(permission_group.VIBRATION,
-                new PermGroupInfo(null, permission_group.VIBRATION, R.drawable.perm_group_vibration));
-        PERMS_GROUPS.put(permission_group.NET,
-                new PermGroupInfo(null, permission_group.NET, R.drawable.perm_group_net));
-        PERMS_GROUPS.put(permission_group.WIFI,
-                new PermGroupInfo(null, permission_group.WIFI, R.drawable.perm_group_wifi));
-        PERMS_GROUPS.put(permission_group.NFC,
-                new PermGroupInfo(null, permission_group.NFC, R.drawable.perm_group_nfc));
-        PERMS_GROUPS.put(permission_group.SETTINGS,
-                new PermGroupInfo(null, permission_group.SETTINGS, R.drawable.perm_group_settings));
-        PERMS_GROUPS.put(permission_group.NOTIFICATIONS,
-                new PermGroupInfo(null, permission_group.NOTIFICATIONS,
-                        R.drawable.perm_group_notifications));
-        PERMS_GROUPS.put(permission_group.CLIPBOARD,
-                new PermGroupInfo(null, permission_group.CLIPBOARD, R.drawable.perm_group_clipboard));
-
-        PERMS_GROUPS.put(permission_group.FINGERPRINT,
-                new PermGroupInfo(null, permission_group.FINGERPRINT, R.drawable.perm_group_fingerprint));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.LOCATION, new PermGroupInfo(null, AppOps.CustomPermissionGroup.LOCATION, R.drawable.perm_group_location));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.STORAGE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.STORAGE, R.drawable.perm_group_storage));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.CALENDAR, new PermGroupInfo(null, AppOps.CustomPermissionGroup.CALENDAR, R.drawable.perm_group_calendar));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.CALLING, new PermGroupInfo(null, AppOps.CustomPermissionGroup.CALLING, R.drawable.perm_group_phone_calls));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.PHONE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.PHONE, R.drawable.perm_group_device));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.CAMERA, new PermGroupInfo(null, AppOps.CustomPermissionGroup.CAMERA, R.drawable.perm_group_camera));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.SMS, new PermGroupInfo(null, AppOps.CustomPermissionGroup.SMS, R.drawable.perm_group_sms));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.MODULE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.MODULE, R.drawable.perm_group_sensors));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.CONTACT, new PermGroupInfo(null, AppOps.CustomPermissionGroup.CONTACT, R.drawable.perm_group_contacts));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.MICROPHONE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.MICROPHONE, R.drawable.perm_group_microphone));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.AUDIO, new PermGroupInfo(null, AppOps.CustomPermissionGroup.AUDIO, R.drawable.perm_group_audio));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.SETTINGS, new PermGroupInfo(null, AppOps.CustomPermissionGroup.SETTINGS, R.drawable.perm_group_settings));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.ACCESSIBILITY, new PermGroupInfo(null, AppOps.CustomPermissionGroup.ACCESSIBILITY, R.drawable.perm_group_accessibility_new));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.SERVICE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.SERVICE, R.drawable.perm_group_service));
+        PERMS_GROUPS.put(AppOps.CustomPermissionGroup.OTHER, new PermGroupInfo(null, AppOps.CustomPermissionGroup.OTHER, R.drawable.perm_group_other));
     }
 
     private static final String TAG = "Helper";
@@ -440,18 +289,9 @@ public class Helper {
                 PackageManager packageManager = context.getPackageManager();
                 int uid = Users.getInstance().getCurrentUid();
                 List<PackageInfo> installedPackages = null;
-                installedPackages = AppOpsx.getInstance(context).getInstalledPackages(0, uid);
-        /*
-        if(uid == 0){
-          installedPackages = packageManager.getInstalledPackages(0);
-        }else {
-          installedPackages = AppOpsx.getInstance(context).getApiSupporter().getInstalledPackages(0,uid);
-        }
-         */
+                installedPackages = ShizukuManager.getInstance(context).getInstalledPackages(0, uid);
 
-
-                List<AppInfo> zhAppInfos = new ArrayList<AppInfo>();
-                List<AppInfo> enAppInfos = new ArrayList<AppInfo>();
+                List<AppInfo> ret = new ArrayList<AppInfo>();
                 for (PackageInfo installedPackage : installedPackages) {
                     if (loadSysapp
                             || (installedPackage.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
@@ -464,51 +304,14 @@ public class Helper {
                         info.installTime = installedPackage.firstInstallTime;
                         info.updateTime = installedPackage.lastUpdateTime;
                         info.applicationInfo = installedPackage.applicationInfo;
-
                         LocalImageLoader.initAdd(context, info);
-
                         //some of the app name is empty.
                         if (TextUtils.isEmpty(info.appName)) {
                             info.appName = info.packageName;
                         }
-                        final char c = info.appName.charAt(0);
-                        if (c >= 48 && c <= 122) {
-                            enAppInfos.add(info);
-                        } else {
-                            zhAppInfos.add(info);
-                        }
-
+                        ret.add(info);
                     }
                 }
-
-                Collections.sort(enAppInfos, new Comparator<AppInfo>() {
-                    @Override
-                    public int compare(AppInfo o1, AppInfo o2) {
-                        return o1.appName.compareToIgnoreCase(o2.appName);
-                    }
-                });
-
-                Collections.sort(zhAppInfos, new Comparator<AppInfo>() {
-                    @Override
-                    public int compare(AppInfo o1, AppInfo o2) {
-                        return o2.appName.compareTo(o1.appName);
-                    }
-                });
-                List<AppInfo> ret = new ArrayList<AppInfo>();
-
-                int type = PreferenceManager.getDefaultSharedPreferences(context)
-                        .getInt("pref_app_sort_type", 0);
-                if (type == 1) {
-                    //按名称排序[字母在后]
-
-                    ret.addAll(zhAppInfos);
-                    ret.addAll(enAppInfos);
-                } else {
-                    //按名称排序[字母在前] 默认
-                    ret.addAll(enAppInfos);
-                    ret.addAll(zhAppInfos);
-                }
-
                 e.onNext(ret);
                 e.onComplete();
             }
@@ -521,7 +324,7 @@ public class Helper {
         return Observable.fromArray(appInfos).map(new Function<AppInfo, PreAppInfo>() {
             @Override
             public PreAppInfo apply(@NonNull AppInfo s) throws Exception {
-                OpsResult opsForPackage = AppOpsx.getInstance(context).getOpsForPackage(s.packageName);
+                OpsResult opsForPackage = ShizukuManager.getInstance(context).getOpsForPackage(s.packageName);
                 if (opsForPackage != null) {
                     if (opsForPackage.getException() != null) {
                         throw new Exception(opsForPackage.getException());
@@ -538,7 +341,7 @@ public class Helper {
 
                         if (ops != null) {
                             for (OpEntry op : ops) {
-                                if (op.getMode() == AppConstraint.MODE_IGNORED) {
+                                if (op.getMode() == AppOpsMode.MODE_IGNORED) {
                                     sb.append(op.getOp()).append(',');
                                 }
                             }
@@ -571,11 +374,11 @@ public class Helper {
 
 
     public static Observable<List<OpEntryInfo>> getAppPermission(final Context context,
-                                                                 final String packageName, final boolean needNoPermsOp) {
+                                                                 final String packageName, final boolean alwaysShownPerm) {
         return Observable.create(new ObservableOnSubscribe<OpsResult>() {
             @Override
             public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = AppOpsx.getInstance(context).getOpsForPackage(packageName);
+                OpsResult opsForPackage = ShizukuManager.getInstance(context).getOpsForPackage(packageName);
                 if (opsForPackage != null) {
                     if (opsForPackage.getException() == null) {
                         e.onNext(opsForPackage);
@@ -590,7 +393,7 @@ public class Helper {
             public boolean test(Throwable throwable) throws Exception {
                 return throwable instanceof IOException || throwable instanceof NullPointerException;
             }
-        }).subscribeOn(Schedulers.io()).map(opsResult2OpEntryInfoMap(context, needNoPermsOp)).map(new Function<List<OpEntryInfo>, List<OpEntryInfo>>() {
+        }).subscribeOn(Schedulers.io()).map(opsResult2OpEntryInfoMap(context, alwaysShownPerm)).map(new Function<List<OpEntryInfo>, List<OpEntryInfo>>() {
             @Override
             public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo> opEntryInfos) throws Exception {
                 return sortPermsFunction(context, opEntryInfos);
@@ -598,7 +401,7 @@ public class Helper {
         });
     }
 
-    private static Function<OpsResult, List<OpEntryInfo>> opsResult2OpEntryInfoMap(final Context context, final boolean needNoPermsOp) {
+    private static Function<OpsResult, List<OpEntryInfo>> opsResult2OpEntryInfoMap(final Context context, final boolean alwaysShownPerm) {
         return new Function<OpsResult, List<OpEntryInfo>>() {
             @Override
             public List<OpEntryInfo> apply(OpsResult opsResult) throws Exception {
@@ -618,12 +421,12 @@ public class Helper {
                                 }
                             }
 
-                            if (needNoPermsOp) {
-                                int size = NO_PERM_OP.size();
+                            if (alwaysShownPerm) {
+                                int size = ALWAYS_SHOWN_OP.size();
                                 for (int i = 0; i < size; i++) {
-                                    int opk = NO_PERM_OP.keyAt(i);
+                                    int opk = ALWAYS_SHOWN_OP.keyAt(i);
                                     if (hasOp.indexOfKey(opk) < 0) {
-                                        OpEntry op = new OpEntry(opk, AppConstraint.MODE_ALLOWED, 0, 0, 0, 0, null);
+                                        OpEntry op = new OpEntry(opk, AppOpsMode.MODE_ALLOWED, 0, 0, 0, 0, null);
                                         OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
                                         if (opEntryInfo != null) {
                                             list.add(opEntryInfo);
@@ -642,17 +445,17 @@ public class Helper {
 
     private static OpEntryInfo opEntry2Info(OpEntry op, Context context, PackageManager pm) {
         OpEntryInfo opEntryInfo = new OpEntryInfo(op);
+        /*
         if (OtherOp.isOtherOp(op.getOp())) {
             opEntryInfo.opName = OtherOp.getOpName(op.getOp());
             opEntryInfo.opPermsName = OtherOp.getOpPermName(op.getOp());
         }
-        if (opEntryInfo.opName != null) {
+         */
+        if (opEntryInfo.opEntry != null) {
             try {
-                if (!OtherOp.isOtherOp(op.getOp())) {
-                    PermissionInfo permissionInfo = pm.getPermissionInfo(opEntryInfo.opPermsName, 0);
-                    opEntryInfo.opPermsLab = String.valueOf(permissionInfo.loadLabel(pm));
-                    opEntryInfo.opPermsDesc = String.valueOf(permissionInfo.loadDescription(pm));
-                }
+                PermissionInfo permissionInfo = pm.getPermissionInfo(opEntryInfo.opPermsName, 0);
+                opEntryInfo.opPermsLab = String.valueOf(permissionInfo.loadLabel(pm));
+                opEntryInfo.opPermsDesc = String.valueOf(permissionInfo.loadDescription(pm));
             } catch (PackageManager.NameNotFoundException e) {
                 //ignore
             }
@@ -676,7 +479,7 @@ public class Helper {
         return Observable.create(new ObservableOnSubscribe<OpsResult>() {
             @Override
             public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = AppOpsx.getInstance(context).getPackagesForOps(null);
+                OpsResult opsForPackage = ShizukuManager.getInstance(context).getPackagesForOps(null);
                 if (opsForPackage != null) {
                     if (opsForPackage.getException() == null) {
                         e.onNext(opsForPackage);
@@ -791,38 +594,38 @@ public class Helper {
     public static Single<List<PermissionGroup>> getPermissionGroup(final Context context,
                                                                    final boolean loadSysapp, final boolean showIgnored) {
         return getAllAppPermissions(context, loadSysapp)
-                .collect(new Callable<Map<String, List<AppPermissions>>>() {
+                .collect(new Callable<Map<Integer, List<AppPermissions>>>() {
                     @Override
-                    public Map<String, List<AppPermissions>> call() throws Exception {
-                        return new HashMap<String, List<AppPermissions>>();
+                    public Map<Integer, List<AppPermissions>> call() throws Exception {
+                        return new HashMap<>();
                     }
-                }, new BiConsumer<Map<String, List<AppPermissions>>, AppPermissions>() {
+                }, new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
                     @Override
-                    public void accept(Map<String, List<AppPermissions>> map, AppPermissions app)
+                    public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
                             throws Exception {
                         if (app.opEntries != null && app.hasPermissions()) {
-                            for (OpEntryInfo opEntry : app.opEntries) {
-                                if (opEntry.opName != null) {
-                                    List<AppPermissions> appPermissionses = map.get(opEntry.opName);
+                            for (OpEntryInfo opEntryInfo : app.opEntries) {
+                                if (opEntryInfo.opEntry != null) {
+                                    List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
                                     if (appPermissionses == null) {
-                                        appPermissionses = new ArrayList<AppPermissions>();
+                                        appPermissionses = new ArrayList<>();
                                     }
                                     appPermissionses.add(app);
-                                    map.put(opEntry.opName, appPermissionses);
+                                    map.put(opEntryInfo.opEntry.getOp(), appPermissionses);
                                 }
                             }
                         }
                     }
                 })
-                .map(new Function<Map<String, List<AppPermissions>>, List<PermissionGroup>>() {
+                .map(new Function<Map<Integer, List<AppPermissions>>, List<PermissionGroup>>() {
                     @Override
-                    public List<PermissionGroup> apply(Map<String, List<AppPermissions>> map)
+                    public List<PermissionGroup> apply(Map<Integer, List<AppPermissions>> map)
                             throws Exception {
                         List<PermissionGroup> groups = new ArrayList<PermissionGroup>();
-                        Set<Entry<String, List<AppPermissions>>> entries = map.entrySet();
-                        for (Entry<String, List<AppPermissions>> entry : entries) {
+                        Set<Entry<Integer, List<AppPermissions>>> entries = map.entrySet();
+                        for (Entry<Integer, List<AppPermissions>> entry : entries) {
                             PermissionGroup group = new PermissionGroup();
-                            group.opName = entry.getKey();
+                            group.opInt = entry.getKey();
 
                             List<AppPermissions> value = entry.getValue();
 
@@ -832,26 +635,25 @@ public class Helper {
                             for (AppPermissions appPermissions : value) {
                                 PermissionChildItem item = new PermissionChildItem();
                                 item.appInfo = appPermissions.appInfo;
-
-
                                 boolean skip = false;
                                 if (appPermissions.opEntries != null) {
-                                    for (OpEntryInfo opEntry : appPermissions.opEntries) {
-                                        if (group.opName.equals(opEntry.opName)) {
-                                            item.opEntryInfo = opEntry;
-                                            if (opEntry.opEntry.getMode() == AppConstraint.MODE_ALLOWED) {
+                                    for (OpEntryInfo opEntryInfo : appPermissions.opEntries) {
+                                        if (group.opInt == opEntryInfo.opEntry.getOp()) {
+                                            item.opEntryInfo = opEntryInfo;
+                                            if (opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_ALLOWED
+                                            || opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_FOREGROUND) {
                                                 group.grants += 1;
                                             } else if (!showIgnored) {
                                                 skip = true;
                                             }
-                                            group.opPermsName = opEntry.opPermsName;
-                                            group.opPermsDesc = opEntry.opPermsDesc;
-                                            group.opPermsLab = opEntry.opPermsLab;
+                                            group.opName = opEntryInfo.opName;
+                                            group.opPermsName = opEntryInfo.opPermsName;
+                                            group.opPermsDesc = opEntryInfo.opPermsDesc;
+                                            group.opPermsLab = opEntryInfo.opPermsLab;
                                             break;
                                         }
                                     }
                                 }
-
                                 if (!skip) {
                                     group.apps.add(item);
                                 }
@@ -865,10 +667,8 @@ public class Helper {
                                     return Long.compare(o2.opEntryInfo.opEntry.getTime(), o1.opEntryInfo.opEntry.getTime());
                                 }
                             });
-
                             groups.add(group);
                         }
-
                         return groups;
                     }
                 }).map(new Function<List<PermissionGroup>, List<PermissionGroup>>() {
@@ -879,7 +679,7 @@ public class Helper {
                         PackageManager pm = context.getPackageManager();
                         for (PermissionGroup permissionGroup : permissionGroups) {
 
-                            String groupS = FAKE_PERMS_GROUP.get(permissionGroup.opName);
+                            String groupS = AppOps.OP_PERMISSION_GROUP_MAP.get(permissionGroup.opInt);
 
                             if (groupS == null && permissionGroup.opPermsName != null) {
                                 try {
@@ -910,13 +710,13 @@ public class Helper {
                             groups.put(permissionGroup.group, value);
                         }
 
-                        return reSort(RE_SORT_GROUPS, groups);
+                        return reSort(AppOps.PERMISSION_GROUP_ORDER, groups);
                     }
                 });
     }
 
 
-    private static List<PermissionGroup> reSort(String[] groupNames,
+    private static List<PermissionGroup> reSort(List<String> groupNames,
                                                 Map<String, List<PermissionGroup>> groups) {
         List<PermissionGroup> ret = new LinkedList<PermissionGroup>();
         for (String groupName : groupNames) {
@@ -934,7 +734,7 @@ public class Helper {
         return Observable.create(new ObservableOnSubscribe<OpsResult>() {
             @Override
             public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = AppOpsx.getInstance(context)
+                OpsResult opsForPackage = ShizukuManager.getInstance(context)
                         .setOpsMode(pkgName, opEntryInfo.opEntry.getOp(), opEntryInfo.mode);
                 if (opsForPackage != null) {
                     if (opsForPackage.getException() == null) {
@@ -964,7 +764,7 @@ public class Helper {
                         return Observable.just(integer).map(new Function<Integer, OpsResult>() {
                             @Override
                             public OpsResult apply(@NonNull Integer integer) throws Exception {
-                                OpsResult opsForPackage = AppOpsx.getInstance(context)
+                                OpsResult opsForPackage = ShizukuManager.getInstance(context)
                                         .setOpsMode(pkgName, integer, opMode);
                                 if (opsForPackage != null) {
                                     if (opsForPackage.getException() == null) {
@@ -990,7 +790,7 @@ public class Helper {
         return SingleJust.just(pkgName).map(new Function<String, OpsResult>() {
             @Override
             public OpsResult apply(@NonNull String s) throws Exception {
-                OpsResult opsForPackage = AppOpsx.getInstance(context).resetAllModes(pkgName);
+                OpsResult opsForPackage = ShizukuManager.getInstance(context).resetAllModes(pkgName);
                 if (opsForPackage != null && opsForPackage.getException() != null) {
                     throw new Exception(opsForPackage.getException());
                 }
@@ -1022,7 +822,7 @@ public class Helper {
                     int size = allowedIgnoreOps.size();
                     for (int i = 0; i < size; i++) {
                         int op = allowedIgnoreOps.keyAt(i);
-                        if (canIgnored.indexOfKey(op) >= 0 || NO_PERM_OP.indexOfKey(op) >= 0) {
+                        if (canIgnored.indexOfKey(op) >= 0 || ALWAYS_SHOWN_OP.indexOfKey(op) >= 0) {
                             //
                             list.put(op, op);
                         }
@@ -1031,7 +831,7 @@ public class Helper {
                 for (int i = 0; i < list.size(); i++) {
                     try {
                         int op = list.keyAt(i);
-                        AppOpsx.getInstance(context).setOpsMode(s, op, AppConstraint.MODE_IGNORED);
+                        ShizukuManager.getInstance(context).setOpsMode(s, op, AppOpsMode.MODE_IGNORED);
                     } catch (Exception ee) {
                         ee.printStackTrace();
                     }
@@ -1069,7 +869,7 @@ public class Helper {
 //                for (int i = 0; i < list.size(); i++) {
 //                    try {
 //                        int op = list.keyAt(i);
-//                        AppOpsx.getInstance(context).setOpsMode(pkg, op, AppOpsManager.MODE_IGNORED);
+//                        ShizukuManager.getInstance(context).setOpsMode(pkg, op, AppOpsManager.MODE_IGNORED);
 //                    } catch (Exception ee) {
 //                        ee.printStackTrace();
 //                    }
@@ -1086,17 +886,17 @@ public class Helper {
 
     public static List<OpEntryInfo> getLocalOpEntryInfos(Context context) {
         if (sOpEntryInfoList.isEmpty()) {
-            int[] sOpToSwitch = FixCompat.sOpToSwitch();
-            String[] sOpNames = FixCompat.sOpNames();
-            String[] sOpPerms = FixCompat.sOpPerms();
-            int len = sOpPerms.length;
+            List<Integer> sOpToSwitch = AppOps.sOpToSwitch;
+            List<String> sOpNames = AppOps.sOpNames;
+            List<String> sOpPerms = AppOps.sOpPerms;
+            int len = sOpPerms.size();
             PackageManager pm = context.getPackageManager();
             for (int i = 0; i < len; i++) {
-                OpEntry entry = new OpEntry(sOpToSwitch[i], AppConstraint.MODE_ALLOWED, 0, 0, 0, 0, null);
+                OpEntry entry = new OpEntry(sOpToSwitch.get(i), AppOpsMode.MODE_ALLOWED, 0, 0, 0, 0, null);
                 OpEntryInfo opEntryInfo = new OpEntryInfo(entry);
-                opEntryInfo.opName = sOpNames[i];
+                opEntryInfo.opName = sOpNames.get(i);
                 try {
-                    PermissionInfo permissionInfo = pm.getPermissionInfo(sOpPerms[i], 0);
+                    PermissionInfo permissionInfo = pm.getPermissionInfo(sOpPerms.get(i), 0);
                     opEntryInfo.opPermsLab = String.valueOf(permissionInfo.loadLabel(pm));
                     opEntryInfo.opPermsDesc = String.valueOf(permissionInfo.loadDescription(pm));
                 } catch (PackageManager.NameNotFoundException e) {
@@ -1134,42 +934,44 @@ public class Helper {
         return ret;
     }
 
-//  public static Single<Boolean> restartServer(Context context) {
-//    return SingleJust.just(context).map(new Function<Context, Boolean>() {
-//      @Override
-//      public Boolean apply(@NonNull Context context) throws Exception {
-//        AppOpsx.getInstance(context).getApiSupporter().restartServer(context);
-//        return true;
-//      }
-//    });
-//  }
-
     public static Function<List<AppInfo>, List<AppInfo>> getSortComparator(final Context context) {
         return new Function<List<AppInfo>, List<AppInfo>>() {
             @Override
             public List<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
-                int type = PreferenceManager.getDefaultSharedPreferences(context)
+                final int type = PreferenceManager.getDefaultSharedPreferences(context)
                         .getInt("pref_app_sort_type", 0);
                 Comparator<AppInfo> comparator = null;
-                if (type == 0) {
-                    //按名称排序
-                } else if (type == 2) {
-                    //按安装时间排序
-                    comparator = new Comparator<AppInfo>() {
-                        @Override
-                        public int compare(AppInfo o1, AppInfo o2) {
-                            return Long.compare(o2.installTime, o1.installTime);
-                        }
-                    };
-                } else if (type == 3) {
-                    //按最后更新时间排序
-                    comparator = new Comparator<AppInfo>() {
-                        @Override
-                        public int compare(AppInfo o1, AppInfo o2) {
-                            return Long.compare(Math.max(o2.installTime, o2.updateTime),
-                                    Math.max(o1.installTime, o1.updateTime));
-                        }
-                    };
+                switch(type) {
+                    case 0: // pass through
+                    case 1:
+                        comparator = new Comparator<AppInfo>() {
+                            @Override
+                            public int compare(AppInfo o1, AppInfo o2) {
+                                return o2.appName.toLowerCase().compareTo(o1.appName.toLowerCase()) * (type * 2 - 1);
+                            }
+                        };
+                        break;
+                    case 2:
+                        //按安装时间排序
+                        comparator = new Comparator<AppInfo>() {
+                            @Override
+                            public int compare(AppInfo o1, AppInfo o2) {
+                                return Long.compare(o2.installTime, o1.installTime);
+                            }
+                        };
+                        break;
+                    case 3:
+                        //按最后更新时间排序
+                        comparator = new Comparator<AppInfo>() {
+                            @Override
+                            public int compare(AppInfo o1, AppInfo o2) {
+                                return Long.compare(Math.max(o2.installTime, o2.updateTime),
+                                        Math.max(o1.installTime, o1.updateTime));
+                            }
+                        };
+                        break;
+                    default:
+                        break;
                 }
 
                 if (comparator != null) {
@@ -1199,7 +1001,7 @@ public class Helper {
         }
 
         List<OpEntryInfo> infoList = new ArrayList<OpEntryInfo>();
-        for (String string : RE_SORT_GROUPS) {
+        for (String string : AppOps.PERMISSION_GROUP_ORDER) {
             List<OpEntryInfo> infos = sMap.get(string);
             if (infos != null) {
                 infoList.addAll(infos);
@@ -1210,7 +1012,7 @@ public class Helper {
     }
 
     private static void joinOpEntryInfo(OpEntryInfo opEntryInfo, Context context) {
-        String groupS = FAKE_PERMS_GROUP.get(opEntryInfo.opName);
+        String groupS = AppOps.OP_PERMISSION_GROUP_MAP.get(opEntryInfo.opEntry.getOp());
         try {
             if (groupS == null && opEntryInfo.opPermsName != null) {
                 PermissionInfo permissionInfo = context.getPackageManager()
@@ -1245,7 +1047,7 @@ public class Helper {
             @Override
             public void accept(List<OpEntryInfo>[] lists, OpEntryInfo opEntryInfo) throws Exception {
                 if (opEntryInfo != null) {
-                    int idx = opEntryInfo.mode == AppConstraint.MODE_ALLOWED ? 0 : 1;
+                    int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
                     List<OpEntryInfo> list = lists[idx];
                     if (list == null) {
                         list = new ArrayList<OpEntryInfo>();
@@ -1276,8 +1078,7 @@ public class Helper {
         return Single.create(new SingleOnSubscribe<List<UserInfo>>() {
             @Override
             public void subscribe(SingleEmitter<List<UserInfo>> emitter) throws Exception {
-                // emitter.onSuccess(AppOpsx.getInstance(context).getApiSupporter().getUsers(excludeDying));
-                emitter.onSuccess(AppOpsx.getInstance(context).getUsers(excludeDying));
+                emitter.onSuccess(ShizukuManager.getInstance(context).getUsers(excludeDying));
             }
         });
     }

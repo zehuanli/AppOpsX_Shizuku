@@ -3,17 +3,14 @@ package com.zzzmode.appopsx.ui.main.group;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.SwitchCompat;
 
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -23,9 +20,8 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
-import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.widget.ExpandableItemIndicator;
@@ -63,10 +59,10 @@ class PermissionGroupAdapter extends
         return mData;
     }
 
-    void changeTitle(int groupPosition, boolean allowed) {
+    void changeTitle(int groupPosition, int inc) {
         PermissionGroup permissionGroup = mData.get(groupPosition);
         if (permissionGroup != null) {
-            permissionGroup.grants += (allowed ? 1 : -1);
+            permissionGroup.grants += inc;
         }
     }
 
@@ -180,7 +176,7 @@ class PermissionGroupAdapter extends
         holder.permissionChildItem = appPermissions;
         holder.groupPosition = groupPosition;
         holder.childPosition = childPosition;
-        holder.spinner.setSelection(AppConstraint.OP_MODE_INDEX_MAP.getOrDefault(appPermissions.opEntryInfo.mode, 0));
+        holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(appPermissions.opEntryInfo.mode, 0));
         holder.initialized = true;
     }
 
@@ -262,9 +258,9 @@ class PermissionGroupAdapter extends
 
             op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
             op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppConstraint.MODE_ALLOWED);
-                put(op_modes.get(1), AppConstraint.MODE_IGNORED);
-                put(op_modes.get(2), AppConstraint.MODE_FOREGROUND);
+                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
+                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
+                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
             }};
 
             imgIcon = itemView.findViewById(R.id.app_icon);

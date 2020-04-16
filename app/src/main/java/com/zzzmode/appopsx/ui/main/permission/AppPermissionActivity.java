@@ -14,12 +14,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
-import com.zzzmode.appopsx.ui.core.AppConstraint;
+import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -150,14 +149,16 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
       case R.id.action_reset:
         mPresenter.reset();
         return true;
-      case R.id.action_hide_perm:
-        showHidePerms();
+      case R.id.action_always_shown_perm:
         return true;
       case R.id.action_open_all:
-        changeAll(AppConstraint.MODE_ALLOWED);
+        changeAll(AppOpsMode.MODE_ALLOWED);
         break;
       case R.id.action_close_all:
-        changeAll(AppConstraint.MODE_IGNORED);
+        changeAll(AppOpsMode.MODE_IGNORED);
+        break;
+      case R.id.action_foreground_all:
+        changeAll(AppOpsMode.MODE_FOREGROUND);
         break;
       case R.id.action_app_info:
         startAppinfo();
@@ -174,7 +175,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
 
     getMenuInflater().inflate(R.menu.app_menu, menu);
 
-    MenuItem menuShowAllPerm = menu.findItem(R.id.action_hide_perm);
+    MenuItem menuAlwaysShownPerm = menu.findItem(R.id.action_always_shown_perm);
     MenuItem menuShowOpDesc = menu.findItem(R.id.action_show_op_perm);
     MenuItem menuShowOpName = menu.findItem(R.id.action_show_op_name);
     MenuItem menuShowPremTime = menu.findItem(R.id.action_show_perm_time);
@@ -182,7 +183,7 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 
     final Map<MenuItem, String> menus = new HashMap<>();
-    menus.put(menuShowAllPerm, "key_show_no_prems");
+    menus.put(menuAlwaysShownPerm, "key_always_shown_prems");
     menus.put(menuShowOpDesc, "key_show_op_desc");
     menus.put(menuShowOpName, "key_show_op_name");
     menus.put(menuShowPremTime, "key_show_perm_time");
@@ -208,11 +209,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
     }
 
     return true;
-  }
-
-
-  private void showHidePerms() {
-
   }
 
   private void changeAll(int newMode) {

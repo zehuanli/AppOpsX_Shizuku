@@ -5,6 +5,7 @@ import java.util.List;
 public class PermissionGroup {
 
   public String group;
+  public int opInt;
   public String opName;
   public String opPermsName;
   public String opPermsLab;
@@ -17,6 +18,7 @@ public class PermissionGroup {
   @Override
   public String toString() {
     return "PermissionGroup{" +
+        "opInt='" + opInt + '\'' +
         "opName='" + opName + '\'' +
         ", opPermsName='" + opPermsName + '\'' +
         ", opPermsLab='" + opPermsLab + '\'' +

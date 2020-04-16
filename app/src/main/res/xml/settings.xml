@@ -16,40 +16,6 @@
       android:key="ignore_premission_templete"
       android:title="@string/auto_ignore_permission_title"
       android:summary="@string/auto_ignore_permission_temp_summary"/>
-
-
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="false"
-      android:key="use_adb"
-      android:title="@string/use_adb_mode"
-      android:summary="@string/use_adb_mode_summary"/>
-
-
-    <com.zzzmode.appopsx.ui.widget.NumberPickerPreference
-      android:defaultValue="5555"
-      app:maxValue="65565"
-      app:minValue="1025"
-      android:key="use_adb_port"
-      android:title="@string/use_adb_port"
-      android:summary="@string/use_adb_port_summary"/>
-
-
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="true"
-      android:key="allow_bg_remote"
-      android:title="@string/allow_bg_remote"
-      android:summary="@string/allow_bg_remote_summary"/>
-
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="false"
-      android:key="allow_root_over_adb"
-      android:title="@string/root_over_adb_mode"
-      android:summary="@string/root_over_adb_mode_summary"/>
-
-    <androidx.preference.Preference
-      android:key="shell_start"
-      android:title="@string/shell_start"
-      android:summary="@string/shell_start_description"/>
   </androidx.preference.PreferenceCategory>
 
   <androidx.preference.PreferenceCategory

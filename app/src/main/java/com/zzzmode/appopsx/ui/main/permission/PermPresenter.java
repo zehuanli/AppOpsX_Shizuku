@@ -6,7 +6,6 @@ import android.util.SparseIntArray;
 
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.common.OpsResult;
-import com.zzzmode.appopsx.ui.core.AppOpsx;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -51,14 +50,14 @@ class PermPresenter {
   }
 
   void setUp() {
-    // mView.showProgress(!AppOpsx.getInstance(context).isRunning());
+    // mView.showProgress(!ShizukuManager.getInstance(context).isRunning());
     load();
   }
 
   void load() {
     observable = Helper.getAppPermission(context, appInfo.packageName,
         PreferenceManager.getDefaultSharedPreferences(context)
-            .getBoolean("key_show_no_prems", false));
+            .getBoolean("key_always_shown_prems", false));
     observable.subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new ResourceObserver<List<OpEntryInfo>>() {

@@ -1,11 +1,10 @@
-package com.zzzmode.appopsx;
+package com.zzzmode.appopsx.ui.core;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageManager;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ParceledListSlice;
 import android.content.pm.PermissionInfo;
 import android.content.pm.UserInfo;
 import android.os.Build;
@@ -14,7 +13,6 @@ import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.app.IAppOpsService;

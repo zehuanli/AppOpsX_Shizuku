@@ -27,7 +27,6 @@ import androidx.core.util.Pair;
 
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ShizukuManager;
 import com.zzzmode.appopsx.common.OpEntry;
 import com.zzzmode.appopsx.common.OpsResult;
 import com.zzzmode.appopsx.common.PackageOps;

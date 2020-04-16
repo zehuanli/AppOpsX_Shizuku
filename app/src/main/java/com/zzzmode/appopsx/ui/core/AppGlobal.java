@@ -11,11 +11,8 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
-import com.zzzmode.appopsx.BuildConfig;
-import com.zzzmode.appopsx.ShizukuManager;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.zzzmode.appopsx.BuildConfig;
 
 /**
  * Created by zl on 2017/1/7.

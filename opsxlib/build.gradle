@@ -50,6 +50,8 @@ dependencies {
 }
 
 build.doLast {
+    // TODO: copy jar files to app, if needed, since opsxpro has been deleted
+    /*
     println("build success,create jar files.")
 
     //create origin appopsx-orig.jar, need dx opt
@@ -62,6 +64,7 @@ build.doLast {
 
     //dx optimization jar
     jar2dex()
+     */
 }
 
 def createJarFile(String jar,List pkgDirPath){
@@ -143,7 +146,6 @@ def jar2dex(){
     println("dx binary file:${dxFile}")
 
     def cmdArgs=['--dex',"--output=$appopsxJar",appopsxOrigJar]
-
 
     def libsDir = file("${rootProject.projectDir.absolutePath}/opsxpro/libs")
     def assetsDir = file("${rootProject.projectDir.absolutePath}/opsxpro/src/main/assets")

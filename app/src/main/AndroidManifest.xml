@@ -67,6 +67,13 @@
       </intent-filter>
     </receiver>
 
+    <provider
+        android:name="moe.shizuku.api.ShizukuBinderReceiveProvider"
+        android:authorities="${applicationId}.shizuku"
+        android:multiprocess="false"
+        android:enabled="true"
+        android:exported="true"
+        android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
     <meta-data android:name="GIT_COMMIT_ID" android:value="${gitCommitId}\"/>
   </application>

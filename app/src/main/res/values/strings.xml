@@ -12,7 +12,7 @@
   <string name="menu_show_perm_time">Display last use time of permissions</string>
   <string name="menu_open_all">Allow all permissions</string>
   <string name="menu_close_all">Ignore all permissions</string>
-  <string name="menu_foreground_all">Forground all permissions</string>
+  <string name="menu_foreground_all">Foreground all permissions</string>
   <string name="open_all_perms">Allow all</string>
   <string name="close_all_perms">Ignore all</string>
   <string name="foreground_all_perms">Foreground all</string>

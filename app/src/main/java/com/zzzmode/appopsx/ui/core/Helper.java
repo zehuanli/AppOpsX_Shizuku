@@ -16,10 +16,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Build;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
@@ -29,7 +27,6 @@ import androidx.core.util.Pair;
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.common.common.OpEntry;
-import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.common.common.PackageOps;
 import com.zzzmode.appopsx.ui.constraint.AppOps;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
@@ -41,10 +38,15 @@ import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.model.PreAppInfo;
 import com.zzzmode.appopsx.ui.main.permission.AppPermissionActivity;
 
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
+import io.reactivex.CompletableSource;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
@@ -151,7 +153,7 @@ public class Helper {
     }};
 
 
-    public static void updataShortcuts(final Context context) {
+    public static void updateShortcuts(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             getInstalledApps(context, false)
                     .concatMap(new Function<List<AppInfo>, ObservableSource<AppInfo>>() {
@@ -159,40 +161,42 @@ public class Helper {
                         public ObservableSource<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
                             return Observable.fromIterable(appInfos);
                         }
-                    }).filter(new Predicate<AppInfo>() {
-                @Override
-                public boolean test(AppInfo info) throws Exception {
-                    return !BuildConfig.APPLICATION_ID.equals(info.packageName);
-                }
-            }).collect(new Callable<List<AppInfo>>() {
-                @Override
-                public List<AppInfo> call() throws Exception {
-                    return new ArrayList<AppInfo>();
-                }
-            }, new BiConsumer<List<AppInfo>, AppInfo>() {
-                @Override
-                public void accept(List<AppInfo> appInfos, AppInfo info) throws Exception {
-                    appInfos.add(info);
-                }
-            }).map(new Function<List<AppInfo>, List<AppInfo>>() {
-                @Override
-                public List<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
-                    Collections.sort(appInfos, new Comparator<AppInfo>() {
+                    })
+                    .filter(new Predicate<AppInfo>() {
                         @Override
-                        public int compare(AppInfo o1, AppInfo o2) {
-                            return o1.time > o2.time ? -1 : 1;
+                        public boolean test(AppInfo info) throws Exception {
+                            return !BuildConfig.APPLICATION_ID.equals(info.packageName);
                         }
-                    });
-                    return appInfos;
-                }
-            }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    })
+                    .collect(new Callable<List<AppInfo>>() {
+                        @Override
+                        public List<AppInfo> call() throws Exception {
+                            return new ArrayList<AppInfo>();
+                        }
+                    }, new BiConsumer<List<AppInfo>, AppInfo>() {
+                        @Override
+                        public void accept(List<AppInfo> appInfos, AppInfo info) throws Exception {
+                            appInfos.add(info);
+                        }
+                    })
+                    .map(new Function<List<AppInfo>, List<AppInfo>>() {
+                        @Override
+                        public List<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
+                            Collections.sort(appInfos, new Comparator<AppInfo>() {
+                                @Override
+                                public int compare(AppInfo o1, AppInfo o2) {
+                                    return o1.time > o2.time ? -1 : 1;
+                                }
+                            });
+                            return appInfos;
+                        }
+                    })
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResourceSingleObserver<List<AppInfo>>() {
                         @Override
                         public void onSuccess(List<AppInfo> value) {
                             try {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-                                    updataShortcuts(context, value);
-                                }
+                                updateShortcuts(context, value);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -207,7 +211,7 @@ public class Helper {
         }
     }
 
-    private static void updataShortcuts(Context context, List<AppInfo> items) {
+    private static void updateShortcuts(Context context, List<AppInfo> items) {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         List<ShortcutInfo> shortcutInfoList = new ArrayList<>();
         int max = shortcutManager.getMaxShortcutCountPerActivity();
@@ -257,26 +261,26 @@ public class Helper {
 
 
     public static Single<AppInfo> getAppInfo(final Context context, String pkgName) {
-        return SingleJust.just(pkgName).map(new Function<String, AppInfo>() {
-            @Override
-            public AppInfo apply(String s) throws Exception {
-                PackageManager packageManager = context.getPackageManager();
-                PackageInfo packageInfo = packageManager.getPackageInfo(s, 0);
+        return SingleJust.just(pkgName)
+                .map(new Function<String, AppInfo>() {
+                    @Override
+                    public AppInfo apply(String s) throws Exception {
+                        PackageManager packageManager = context.getPackageManager();
+                        PackageInfo packageInfo = packageManager.getPackageInfo(s, 0);
 
-                AppInfo info = new AppInfo();
-                info.packageName = packageInfo.packageName;
-                info.appName = BidiFormatter.getInstance()
-                        .unicodeWrap(packageInfo.applicationInfo.loadLabel(packageManager)).toString();
-                info.time = Math.max(packageInfo.lastUpdateTime, packageInfo.firstInstallTime);
-                info.installTime = packageInfo.firstInstallTime;
-                info.updateTime = packageInfo.lastUpdateTime;
-                info.applicationInfo = packageInfo.applicationInfo;
+                        AppInfo info = new AppInfo();
+                        info.packageName = packageInfo.packageName;
+                        info.appName = BidiFormatter.getInstance()
+                                .unicodeWrap(packageInfo.applicationInfo.loadLabel(packageManager)).toString();
+                        info.time = Math.max(packageInfo.lastUpdateTime, packageInfo.firstInstallTime);
+                        info.installTime = packageInfo.firstInstallTime;
+                        info.updateTime = packageInfo.lastUpdateTime;
+                        info.applicationInfo = packageInfo.applicationInfo;
 
-                LocalImageLoader.initAdd(context, info);
-                return info;
-            }
-        });
-
+                        LocalImageLoader.initAdd(context, info);
+                        return info;
+                    }
+                });
     }
 
     public static Observable<List<AppInfo>> getInstalledApps(final Context context,
@@ -317,53 +321,83 @@ public class Helper {
         });
     }
 
-
-    public static Observable<PreAppInfo> getAppsPermission(final Context context,
-                                                           AppInfo[] appInfos) {
-        return Observable.fromArray(appInfos).map(new Function<AppInfo, PreAppInfo>() {
-            @Override
-            public PreAppInfo apply(@NonNull AppInfo s) throws Exception {
-                OpsResult opsForPackage = ShizukuManager.getInstance(context).getOpsForPackage(s.packageName);
-                if (opsForPackage != null) {
-                    if (opsForPackage.getException() != null) {
-                        throw new Exception(opsForPackage.getException());
+    // For exporting to the backup file
+    public static Observable<PreAppInfo> getAppsPermission(final Context context, AppInfo[] appInfos) {
+        return Observable.fromArray(appInfos)
+                .map(new Function<AppInfo, List<PackageOps>>() {
+                    @Override
+                    public List<PackageOps> apply(@NonNull AppInfo _appInfo) throws Exception {
+                        return ShizukuManager.getInstance(context).getOpsForPackage(_appInfo.packageName);
                     }
-                } else {
-                    throw new NullPointerException("getOpsForPackage:" + s + " return null !");
-                }
-                PreAppInfo appInfo = new PreAppInfo(s.packageName);
-                List<PackageOps> opses = opsForPackage.getList();
-                if (opses != null) {
-                    StringBuilder sb = new StringBuilder();
-                    for (PackageOps opse : opses) {
-                        List<OpEntry> ops = opse.getOps();
-
-                        if (ops != null) {
-                            for (OpEntry op : ops) {
-                                if (op.getMode() == AppOpsMode.MODE_IGNORED) {
-                                    sb.append(op.getOp()).append(',');
-                                }
-                            }
-                        }
-                    }
-                    int len = sb.length();
-                    if (len > 0 && sb.charAt(len - 1) == ',') {
-                        sb.deleteCharAt(len - 1);
-                    }
-                    appInfo.setIgnoredOps(sb.toString());
-                    return appInfo;
-                } else {
-                    throw new NullPointerException("");
-                }
-            }
-        })
+                })
                 .retry(5, new Predicate<Throwable>() {
                     @Override
                     public boolean test(Throwable throwable) throws Exception {
                         return throwable instanceof IOException || throwable instanceof NullPointerException;
                     }
                 })
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .flatMap(Observable::fromIterable)
+                .map(packageOpsAddAlwaysShownPerm(context))
+                .map(new Function<PackageOps, PreAppInfo>() {
+                    @Override
+                    public PreAppInfo apply(PackageOps packageOps) throws Exception {
+                        PreAppInfo appInfo = new PreAppInfo(packageOps.getPackageName());
+                        StringBuilder allowedOpsSb = new StringBuilder();
+                        StringBuilder ignoredOpsSb = new StringBuilder();
+                        StringBuilder erroredOpsSb = new StringBuilder();
+                        StringBuilder defaultOpsSb = new StringBuilder();
+                        StringBuilder foregroundOpsSb = new StringBuilder();
+                        List<OpEntry> ops = packageOps.getOps();
+                        if (ops != null) {
+                            for (OpEntry op : ops) {
+                                switch (op.getMode()) {
+                                    case AppOpsMode.MODE_ALLOWED:
+                                        allowedOpsSb.append(op.getOp()).append(',');
+                                        break;
+                                    case AppOpsMode.MODE_IGNORED:
+                                        ignoredOpsSb.append(op.getOp()).append(',');
+                                        break;
+                                    case AppOpsMode.MODE_ERRORED:
+                                        erroredOpsSb.append(op.getOp()).append(',');
+                                        break;
+                                    case AppOpsMode.MODE_DEFAULT:
+                                        defaultOpsSb.append(op.getOp()).append(',');
+                                        break;
+                                    case AppOpsMode.MODE_FOREGROUND:
+                                        foregroundOpsSb.append(op.getOp()).append(',');
+                                        break;
+                                }
+                            }
+                        }
+                        int allowedLen = allowedOpsSb.length();
+                        if (allowedLen > 0 && allowedOpsSb.charAt(allowedLen - 1) == ',') {
+                            allowedOpsSb.deleteCharAt(allowedLen - 1);
+                        }
+                        int ignoredLen = ignoredOpsSb.length();
+                        if (ignoredLen > 0 && ignoredOpsSb.charAt(ignoredLen - 1) == ',') {
+                            ignoredOpsSb.deleteCharAt(ignoredLen - 1);
+                        }
+                        int errorLen = erroredOpsSb.length();
+                        if (errorLen > 0 && erroredOpsSb.charAt(errorLen - 1) == ',') {
+                            erroredOpsSb.deleteCharAt(errorLen - 1);
+                        }
+                        int defaultLen = defaultOpsSb.length();
+                        if (defaultLen > 0 && defaultOpsSb.charAt(defaultLen - 1) == ',') {
+                            defaultOpsSb.deleteCharAt(defaultLen - 1);
+                        }
+                        int foregroundLen = foregroundOpsSb.length();
+                        if (foregroundLen > 0 && foregroundOpsSb.charAt(foregroundLen - 1) == ',') {
+                            foregroundOpsSb.deleteCharAt(foregroundLen - 1);
+                        }
+                        appInfo.setAllowedOps(allowedOpsSb.toString());
+                        appInfo.setIgnoredOps(ignoredOpsSb.toString());
+                        appInfo.setErroredOps(erroredOpsSb.toString());
+                        appInfo.setDefaultOps(defaultOpsSb.toString());
+                        appInfo.setForegroundOps(foregroundOpsSb.toString());
+                        return appInfo;
+                    }
+                });
     }
 
     public static Observable<List<OpEntryInfo>> getAppPermission(final Context context,
@@ -374,74 +408,85 @@ public class Helper {
 
     public static Observable<List<OpEntryInfo>> getAppPermission(final Context context,
                                                                  final String packageName, final boolean alwaysShownPerm) {
-        return Observable.create(new ObservableOnSubscribe<OpsResult>() {
-            @Override
-            public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = ShizukuManager.getInstance(context).getOpsForPackage(packageName);
-                if (opsForPackage != null) {
-                    if (opsForPackage.getException() == null) {
+        return Observable
+                .create(new ObservableOnSubscribe<List<PackageOps>>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<List<PackageOps>> e) throws Exception {
+                        List<PackageOps> opsForPackage = ShizukuManager.getInstance(context).getOpsForPackage(packageName);
                         e.onNext(opsForPackage);
-                    } else {
-                        throw new Exception(opsForPackage.getException());
+                        e.onComplete();
                     }
-                }
-                e.onComplete();
-            }
-        }).retry(5, new Predicate<Throwable>() {
-            @Override
-            public boolean test(Throwable throwable) throws Exception {
-                return throwable instanceof IOException || throwable instanceof NullPointerException;
-            }
-        }).subscribeOn(Schedulers.io()).map(opsResult2OpEntryInfoMap(context, alwaysShownPerm)).map(new Function<List<OpEntryInfo>, List<OpEntryInfo>>() {
-            @Override
-            public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo> opEntryInfos) throws Exception {
-                return sortPermsFunction(context, opEntryInfos);
-            }
-        });
-    }
-
-    private static Function<OpsResult, List<OpEntryInfo>> opsResult2OpEntryInfoMap(final Context context, final boolean alwaysShownPerm) {
-        return new Function<OpsResult, List<OpEntryInfo>>() {
-            @Override
-            public List<OpEntryInfo> apply(OpsResult opsResult) throws Exception {
-                List<PackageOps> opses = opsResult.getList();
-                if (opses != null) {
-                    List<OpEntryInfo> list = new ArrayList<>();
-                    PackageManager pm = context.getPackageManager();
-                    for (PackageOps opse : opses) {
-                        List<OpEntry> ops = opse.getOps();
-                        if (ops != null) {
-                            SparseIntArray hasOp = new SparseIntArray();
-                            for (OpEntry op : ops) {
-                                OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
-                                if (opEntryInfo != null) {
-                                    hasOp.put(op.getOp(), op.getOp());
-                                    list.add(opEntryInfo);
-                                }
-                            }
-
-                            if (alwaysShownPerm) {
-                                int size = ALWAYS_SHOWN_OP.size();
-                                for (int i = 0; i < size; i++) {
-                                    int opk = ALWAYS_SHOWN_OP.keyAt(i);
-                                    if (hasOp.indexOfKey(opk) < 0) {
-                                        try {
-                                            int mode = ShizukuManager.getInstance(context).checkOperation(opk, opse.getPackageName());
-                                            OpEntry op = new OpEntry(opk, mode, 0, 0, 0, 0, null);
-                                            OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
-                                            if (opEntryInfo != null) {
-                                                list.add(opEntryInfo);
-                                            }
-                                        } catch (IllegalArgumentException ignored) {
-                                        }
-                                    }
-                                }
-                            }
+                })
+                .retry(5, new Predicate<Throwable>() {
+                    @Override
+                    public boolean test(Throwable throwable) throws Exception {
+                        return throwable instanceof IOException || throwable instanceof NullPointerException;
+                    }
+                })
+                .flatMap(Observable::fromIterable)
+                .compose(new ObservableTransformer<PackageOps, PackageOps>() {
+                    @Override
+                    public ObservableSource<PackageOps> apply(Observable<PackageOps> upstream) {
+                        if (alwaysShownPerm) {
+                            return upstream.map(packageOpsAddAlwaysShownPerm(context));
+                        } else {
+                            return upstream;
                         }
                     }
-                    return list;
+                })
+                .subscribeOn(Schedulers.io())
+                .map(packageOpsToOpEntryInfo(context))
+                .map(new Function<List<OpEntryInfo>, List<OpEntryInfo>>() {
+                    @Override
+                    public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo> opEntryInfos) throws Exception {
+                        return sortPermsFunction(context, opEntryInfos);
+                    }
+                });
+    }
+
+    private static Function<PackageOps, PackageOps> packageOpsAddAlwaysShownPerm(final Context context) {
+        return new Function<PackageOps, PackageOps>() {
+            @Override
+            public PackageOps apply(PackageOps packageOps) throws Exception {
+                SparseIntArray existedOps = new SparseIntArray();
+                List<OpEntry> opEntries = packageOps.getOps();
+                for (OpEntry op : opEntries) {
+                    existedOps.put(op.getOp(), op.getOp());
                 }
-                return Collections.emptyList();
+                for (int i = 0; i < ALWAYS_SHOWN_OP.size(); i++) {
+                    int opInt = ALWAYS_SHOWN_OP.keyAt(i);
+                    if (existedOps.indexOfKey(opInt) < 0) {
+                        try {
+                            int mode = ShizukuManager.getInstance(context).checkOperation(opInt, packageOps.getPackageName());
+                            OpEntry op = new OpEntry(opInt, mode, 0, 0, 0, 0, null);
+                            opEntries.add(op);
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                    }
+                }
+                return packageOps;
+            }
+        };
+    }
+
+    private static Function<PackageOps, List<OpEntryInfo>> packageOpsToOpEntryInfo(final Context context) {
+        return new Function<PackageOps, List<OpEntryInfo>>() {
+            @Override
+            public List<OpEntryInfo> apply(PackageOps packageOps) throws Exception {
+                PackageManager pm = context.getPackageManager();
+                List<OpEntry> ops = packageOps.getOps();
+                List<OpEntryInfo> opEntryInfoList = new ArrayList<>();
+                if (ops != null) {
+                    SparseIntArray hasOp = new SparseIntArray();
+                    for (OpEntry op : ops) {
+                        OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
+                        if (opEntryInfo != null) {
+                            hasOp.put(op.getOp(), op.getOp());
+                            opEntryInfoList.add(opEntryInfo);
+                        }
+                    }
+                }
+                return opEntryInfoList;
             }
         };
     }
@@ -480,79 +525,82 @@ public class Helper {
         return getAllAppPermissions(context, loadSysapp, false);
     }
 
-    // TODO: Implement always shown perms for group permissions
     static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp, final boolean alwaysShownPerm) {
-        return Observable.create(new ObservableOnSubscribe<OpsResult>() {
-            @Override
-            public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = ShizukuManager.getInstance(context).getPackagesForOps(null);
-                if (opsForPackage != null) {
-                    if (opsForPackage.getException() == null) {
+        return Observable
+                .create(new ObservableOnSubscribe<List<PackageOps>>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<List<PackageOps>> e) throws Exception {
+                        List<PackageOps> opsForPackage = ShizukuManager.getInstance(context).getPackagesForOps(null);
                         e.onNext(opsForPackage);
-                    } else {
-                        throw new Exception(opsForPackage.getException());
+                        e.onComplete();
                     }
-                }
-                e.onComplete();
-            }
-        }).retry(5, new Predicate<Throwable>() {
-            @Override
-            public boolean test(Throwable throwable) throws Exception {
-                return throwable instanceof IOException || throwable instanceof NullPointerException;
-            }
-        }).map(new Function<OpsResult, Map<String, PackageOps>>() {
-            @Override
-            public Map<String, PackageOps> apply(OpsResult result) throws Exception {
-                Map<String, PackageOps> map = new HashMap<>();
-                List<PackageOps> list = result.getList();
-                if (list != null) {
-                    for (PackageOps packageOps : list) {
-                        map.put(packageOps.getPackageName(), packageOps);
+                })
+                .retry(5, new Predicate<Throwable>() {
+                    @Override
+                    public boolean test(Throwable throwable) throws Exception {
+                        return throwable instanceof IOException || throwable instanceof NullPointerException;
                     }
-                }
-                return map;
-            }
-        }).flatMap(new Function<Map<String, PackageOps>, ObservableSource<List<AppPermissions>>>() {
-            public ObservableSource<List<AppPermissions>> apply(final Map<String, PackageOps> result) throws Exception {
-                return getInstalledApps(context, loadSysapp).map(
-                        new Function<List<AppInfo>, List<AppPermissions>>() {
-                            @Override
-                            public List<AppPermissions> apply(List<AppInfo> appInfos) throws Exception {
-                                List<AppPermissions> list = new ArrayList<AppPermissions>();
-                                PackageManager pm = context.getPackageManager();
-                                if (appInfos != null) {
-                                    for (AppInfo appInfo : appInfos) {
-                                        AppPermissions p = new AppPermissions();
-                                        p.appInfo = appInfo;
-                                        PackageOps packageOps = result.get(appInfo.packageName);
-                                        if (packageOps != null) {
-                                            List<OpEntry> ops = packageOps.getOps();
-                                            if (ops != null) {
-                                                List<OpEntryInfo> opEntryInfos = new ArrayList<>();
-                                                SparseIntArray hasOp = new SparseIntArray();
-                                                for (OpEntry op : ops) {
-                                                    OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
-                                                    if (opEntryInfo != null) {
-                                                        hasOp.put(op.getOp(), op.getOp());
-                                                        opEntryInfos.add(opEntryInfo);
+                })
+                .flatMap(Observable::fromIterable)
+                .compose(new ObservableTransformer<PackageOps, PackageOps>() {
+                    @Override
+                    public ObservableSource<PackageOps> apply(Observable<PackageOps> upstream) {
+                        if (alwaysShownPerm) {
+                            return upstream.map(packageOpsAddAlwaysShownPerm(context));
+                        } else {
+                            return upstream;
+                        }
+                    }
+                })
+                .toList()
+                .toObservable()
+                .map(new Function<List<PackageOps>, Map<String, PackageOps>>() {
+                    @Override
+                    public Map<String, PackageOps> apply(List<PackageOps> result) throws Exception {
+                        Map<String, PackageOps> map = new HashMap<>();
+                        for (PackageOps packageOps : result) {
+                            map.put(packageOps.getPackageName(), packageOps);
+                        }
+                        return map;
+                    }
+                })
+                .flatMap(new Function<Map<String, PackageOps>, ObservableSource<List<AppPermissions>>>() {
+                    public ObservableSource<List<AppPermissions>> apply(final Map<String, PackageOps> result) throws Exception {
+                        return getInstalledApps(context, loadSysapp).map(
+                                new Function<List<AppInfo>, List<AppPermissions>>() {
+                                    @Override
+                                    public List<AppPermissions> apply(List<AppInfo> appInfos) throws Exception {
+                                        List<AppPermissions> list = new ArrayList<AppPermissions>();
+                                        PackageManager pm = context.getPackageManager();
+                                        if (appInfos != null) {
+                                            for (AppInfo appInfo : appInfos) {
+                                                AppPermissions p = new AppPermissions();
+                                                p.appInfo = appInfo;
+                                                PackageOps packageOps = result.get(appInfo.packageName);
+                                                if (packageOps != null) {
+                                                    List<OpEntry> ops = packageOps.getOps();
+                                                    if (ops != null) {
+                                                        List<OpEntryInfo> opEntryInfos = new ArrayList<>();
+                                                        SparseIntArray hasOp = new SparseIntArray();
+                                                        for (OpEntry op : ops) {
+                                                            OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
+                                                            if (opEntryInfo != null) {
+                                                                hasOp.put(op.getOp(), op.getOp());
+                                                                opEntryInfos.add(opEntryInfo);
+                                                            }
+                                                        }
+                                                        p.opEntries = opEntryInfos;
+                                                        list.add(p);
                                                     }
                                                 }
-                                                p.opEntries = opEntryInfos;
-                                                list.add(p);
                                             }
                                         }
+                                        return list;
                                     }
-                                }
-                                return list;
-                            }
-                        });
-            }
-        }).flatMap(new Function<List<AppPermissions>, ObservableSource<AppPermissions>>() {
-            @Override
-            public ObservableSource<AppPermissions> apply(List<AppPermissions> appPermissions) throws Exception {
-                return Observable.fromIterable(appPermissions);
-            }
-        });
+                                });
+                    }
+                })
+                .flatMap(Observable::fromIterable);
     }
 
 
@@ -560,33 +608,36 @@ public class Helper {
                                                                                final boolean loadSysapp) {
         return getAllAppPermissions(context, loadSysapp)
                 .collect(new Callable<List<Pair<AppInfo, OpEntryInfo>>>() {
-                    @Override
-                    public List<Pair<AppInfo, OpEntryInfo>> call() throws Exception {
-                        return new ArrayList<Pair<AppInfo, OpEntryInfo>>();
-                    }
-                }, new BiConsumer<List<Pair<AppInfo, OpEntryInfo>>, AppPermissions>() {
-                    @Override
-                    public void accept(List<Pair<AppInfo, OpEntryInfo>> pairs, AppPermissions appPermissions) {
-                        if (appPermissions.opEntries != null) {
-                            for (OpEntryInfo opEntry : appPermissions.opEntries) {
-                                //被调用过并且允许的才加入列表
-                                //超过一个月的记录不显示
-                                long time = opEntry.opEntry.getTime();
-                                long now = System.currentTimeMillis();
-                                if (time > 0 && (now - time < 60 * 60 * 24 * 31 * 1000L) && opEntry.isAllowOrForeground()) {
-                                    joinOpEntryInfo(opEntry, context);
-                                    pairs.add(Pair.create(appPermissions.appInfo, opEntry));
+                             @Override
+                             public List<Pair<AppInfo, OpEntryInfo>> call() throws Exception {
+                                 return new ArrayList<Pair<AppInfo, OpEntryInfo>>();
+                             }
+                         }
+                        , new BiConsumer<List<Pair<AppInfo, OpEntryInfo>>, AppPermissions>() {
+                            @Override
+                            public void accept(List<Pair<AppInfo, OpEntryInfo>> pairs, AppPermissions appPermissions) {
+                                if (appPermissions.opEntries != null) {
+                                    for (OpEntryInfo opEntry : appPermissions.opEntries) {
+                                        //被调用过并且允许的才加入列表
+                                        //超过一个月的记录不显示
+                                        long time = opEntry.opEntry.getTime();
+                                        long now = System.currentTimeMillis();
+                                        if (time > 0 && (now - time < 60 * 60 * 24 * 31 * 1000L) && opEntry.isAllowOrForeground()) {
+                                            joinOpEntryInfo(opEntry, context);
+                                            pairs.add(Pair.create(appPermissions.appInfo, opEntry));
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }).flatMapObservable(new Function<List<Pair<AppInfo, OpEntryInfo>>, ObservableSource<Pair<AppInfo, OpEntryInfo>>>() {
-                    @Override
-                    public ObservableSource<Pair<AppInfo, OpEntryInfo>> apply(@NonNull List<Pair<AppInfo, OpEntryInfo>> pairs)
-                            throws Exception {
-                        return Observable.fromIterable(pairs);
-                    }
-                }).toSortedList(new Comparator<Pair<AppInfo, OpEntryInfo>>() {
+                        })
+                .flatMapObservable(new Function<List<Pair<AppInfo, OpEntryInfo>>, ObservableSource<Pair<AppInfo, OpEntryInfo>>>() {
+                                       @Override
+                                       public ObservableSource<Pair<AppInfo, OpEntryInfo>> apply(@NonNull List<Pair<AppInfo, OpEntryInfo>> pairs)
+                                               throws Exception {
+                                           return Observable.fromIterable(pairs);
+                                       }
+                                   }
+                ).toSortedList(new Comparator<Pair<AppInfo, OpEntryInfo>>() {
                     @Override
                     public int compare(Pair<AppInfo, OpEntryInfo> t0,
                                        Pair<AppInfo, OpEntryInfo> t1) {
@@ -599,28 +650,29 @@ public class Helper {
                                                                    final boolean loadSysapp, final boolean showIgnored, final boolean alwaysShownPerm) {
         return getAllAppPermissions(context, loadSysapp, alwaysShownPerm)
                 .collect(new Callable<Map<Integer, List<AppPermissions>>>() {
-                    @Override
-                    public Map<Integer, List<AppPermissions>> call() throws Exception {
-                        return new HashMap<>();
-                    }
-                }, new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
-                    @Override
-                    public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
-                            throws Exception {
-                        if (app.opEntries != null && app.hasPermissions()) {
-                            for (OpEntryInfo opEntryInfo : app.opEntries) {
-                                if (opEntryInfo.opEntry != null) {
-                                    List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
-                                    if (appPermissionses == null) {
-                                        appPermissionses = new ArrayList<>();
+                             @Override
+                             public Map<Integer, List<AppPermissions>> call() throws Exception {
+                                 return new HashMap<>();
+                             }
+                         }
+                        , new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
+                            @Override
+                            public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
+                                    throws Exception {
+                                if (app.opEntries != null && app.hasPermissions()) {
+                                    for (OpEntryInfo opEntryInfo : app.opEntries) {
+                                        if (opEntryInfo.opEntry != null) {
+                                            List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
+                                            if (appPermissionses == null) {
+                                                appPermissionses = new ArrayList<>();
+                                            }
+                                            appPermissionses.add(app);
+                                            map.put(opEntryInfo.opEntry.getOp(), appPermissionses);
+                                        }
                                     }
-                                    appPermissionses.add(app);
-                                    map.put(opEntryInfo.opEntry.getOp(), appPermissionses);
                                 }
                             }
-                        }
-                    }
-                })
+                        })
                 .map(new Function<Map<Integer, List<AppPermissions>>, List<PermissionGroup>>() {
                     @Override
                     public List<PermissionGroup> apply(Map<Integer, List<AppPermissions>> map)
@@ -630,12 +682,9 @@ public class Helper {
                         for (Entry<Integer, List<AppPermissions>> entry : entries) {
                             PermissionGroup group = new PermissionGroup();
                             group.opInt = entry.getKey();
-
                             List<AppPermissions> value = entry.getValue();
-
                             group.count = value.size();
                             group.apps = new ArrayList<PermissionChildItem>();
-
                             for (AppPermissions appPermissions : value) {
                                 PermissionChildItem item = new PermissionChildItem();
                                 item.appInfo = appPermissions.appInfo;
@@ -645,7 +694,7 @@ public class Helper {
                                         if (group.opInt == opEntryInfo.opEntry.getOp()) {
                                             item.opEntryInfo = opEntryInfo;
                                             if (opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_ALLOWED
-                                            || opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_FOREGROUND) {
+                                                    || opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_FOREGROUND) {
                                                 group.grants += 1;
                                             } else if (!showIgnored) {
                                                 skip = true;
@@ -661,10 +710,7 @@ public class Helper {
                                 if (!skip) {
                                     group.apps.add(item);
                                 }
-
                             }
-
-
                             Collections.sort(group.apps, new Comparator<PermissionChildItem>() {
                                 @Override
                                 public int compare(PermissionChildItem o1, PermissionChildItem o2) {
@@ -675,16 +721,15 @@ public class Helper {
                         }
                         return groups;
                     }
-                }).map(new Function<List<PermissionGroup>, List<PermissionGroup>>() {
+                })
+                .map(new Function<List<PermissionGroup>, List<PermissionGroup>>() {
                     @Override
                     public List<PermissionGroup> apply(List<PermissionGroup> permissionGroups)
                             throws Exception {
                         Map<String, List<PermissionGroup>> groups = new HashMap<String, List<PermissionGroup>>();
                         PackageManager pm = context.getPackageManager();
                         for (PermissionGroup permissionGroup : permissionGroups) {
-
                             String groupS = AppOps.OP_PERMISSION_GROUP_MAP.get(permissionGroup.opInt);
-
                             if (groupS == null && permissionGroup.opPermsName != null) {
                                 try {
                                     PermissionInfo permissionInfo = pm
@@ -694,7 +739,6 @@ public class Helper {
                                     //ignore
                                 }
                             }
-
                             PermGroupInfo permGroupInfo = null;
                             if (groupS != null) {
                                 permGroupInfo = PERMS_GROUPS.get(groupS);
@@ -704,7 +748,6 @@ public class Helper {
                             }
                             permissionGroup.icon = permGroupInfo.icon;
                             permissionGroup.group = permGroupInfo.group;
-
                             List<PermissionGroup> value = groups.get(permissionGroup.group);
                             if (value == null) {
                                 value = new ArrayList<PermissionGroup>();
@@ -713,7 +756,6 @@ public class Helper {
 
                             groups.put(permissionGroup.group, value);
                         }
-
                         return reSort(AppOps.PERMISSION_GROUP_ORDER, groups);
                     }
                 });
@@ -732,75 +774,57 @@ public class Helper {
         return ret;
     }
 
-    public static Observable<OpsResult> setMode(final Context context, final String pkgName,
-                                                final OpEntryInfo opEntryInfo) {
-
-        return Observable.create(new ObservableOnSubscribe<OpsResult>() {
-            @Override
-            public void subscribe(ObservableEmitter<OpsResult> e) throws Exception {
-                OpsResult opsForPackage = ShizukuManager.getInstance(context)
-                        .setOpsMode(pkgName, opEntryInfo.opEntry.getOp(), opEntryInfo.mode);
-                if (opsForPackage != null) {
-                    if (opsForPackage.getException() == null) {
-                        e.onNext(opsForPackage);
-                    } else {
-                        throw new Exception(opsForPackage.getException());
-                    }
-                }
-                e.onComplete();
-
-            }
-        }).retry(5, new Predicate<Throwable>() {
-            @Override
-            public boolean test(Throwable throwable) throws Exception {
-                return throwable instanceof IOException || throwable instanceof NullPointerException;
-            }
-        });
-    }
-
-
-    public static Observable<OpsResult> setModes(final Context context, final String pkgName,
-                                                 final int opMode, List<Integer> ops) {
-        return Observable.fromIterable(ops)
-                .flatMap(new Function<Integer, ObservableSource<OpsResult>>() {
+    public static Completable setMode(final Context context, final String pkgName, final OpEntryInfo opEntryInfo) {
+        return Completable
+                .create(new CompletableOnSubscribe() {
                     @Override
-                    public ObservableSource<OpsResult> apply(@NonNull Integer integer) throws Exception {
-                        return Observable.just(integer).map(new Function<Integer, OpsResult>() {
-                            @Override
-                            public OpsResult apply(@NonNull Integer integer) throws Exception {
-                                OpsResult opsForPackage = ShizukuManager.getInstance(context)
-                                        .setOpsMode(pkgName, integer, opMode);
-                                if (opsForPackage != null) {
-                                    if (opsForPackage.getException() == null) {
-                                        return opsForPackage;
-                                    } else {
-                                        throw new Exception(opsForPackage.getException());
-                                    }
-                                }
-                                return null;
-                            }
-                        }).retry(5, new Predicate<Throwable>() {
-                            @Override
-                            public boolean test(Throwable throwable) throws Exception {
-                                return throwable instanceof IOException
-                                        || throwable instanceof NullPointerException;
-                            }
-                        });
+                    public void subscribe(CompletableEmitter e) throws Exception {
+                        ShizukuManager.getInstance(context).setOpsMode(pkgName, opEntryInfo.opEntry.getOp(), opEntryInfo.mode);
+                        e.onComplete();
+                    }
+                })
+                .retry(5, new Predicate<Throwable>() {
+                    @Override
+                    public boolean test(Throwable throwable) throws Exception {
+                        return throwable instanceof IOException || throwable instanceof NullPointerException;
                     }
                 });
     }
 
-    public static Single<OpsResult> resetMode(final Context context, final String pkgName) {
-        return SingleJust.just(pkgName).map(new Function<String, OpsResult>() {
-            @Override
-            public OpsResult apply(@NonNull String s) throws Exception {
-                OpsResult opsForPackage = ShizukuManager.getInstance(context).resetAllModes(pkgName);
-                if (opsForPackage != null && opsForPackage.getException() != null) {
-                    throw new Exception(opsForPackage.getException());
-                }
-                return opsForPackage;
-            }
-        });
+
+    public static Completable setModes(final Context context, final String pkgName, final int opMode, List<Integer> ops) {
+        return Observable.fromIterable(ops)
+                .flatMapCompletable(new Function<Integer, CompletableSource>() {
+                    @Override
+                    public CompletableSource apply(Integer integer) throws Exception {
+                        ShizukuManager.getInstance(context).setOpsMode(pkgName, integer, opMode);
+                        return Completable.complete();
+                    }
+                })
+                .retry(5, new Predicate<Throwable>() {
+                    @Override
+                    public boolean test(Throwable throwable) throws Exception {
+                        return throwable instanceof IOException
+                                || throwable instanceof NullPointerException;
+                    }
+                });
+    }
+
+    public static Completable resetMode(final Context context, final String pkgName) {
+        return Completable
+                .create(new CompletableOnSubscribe() {
+                    @Override
+                    public void subscribe(CompletableEmitter e) throws Exception {
+                        ShizukuManager.getInstance(context).resetAllModes(pkgName);
+                        e.onComplete();
+                    }
+                })
+                .retry(5, new Predicate<Throwable>() {
+                    @Override
+                    public boolean test(Throwable throwable) throws Exception {
+                        return throwable instanceof IOException || throwable instanceof NullPointerException;
+                    }
+                });
     }
 
     public static Single<SparseIntArray> autoDisable(final Context context, String pkg) {
@@ -945,7 +969,7 @@ public class Helper {
                 final int type = PreferenceManager.getDefaultSharedPreferences(context)
                         .getInt("pref_app_sort_type", 0);
                 Comparator<AppInfo> comparator = null;
-                switch(type) {
+                switch (type) {
                     case 0: // pass through
                     case 1:
                         comparator = new Comparator<AppInfo>() {
@@ -1042,39 +1066,42 @@ public class Helper {
     public static Single<List<OpEntryInfo>> groupByMode(final Context context,
                                                         List<OpEntryInfo> list) {
 
-        return Observable.fromIterable(list).collect(new Callable<List<OpEntryInfo>[]>() {
-            @Override
-            public List<OpEntryInfo>[] call() throws Exception {
-                return new List[2];
-            }
-        }, new BiConsumer<List<OpEntryInfo>[], OpEntryInfo>() {
-            @Override
-            public void accept(List<OpEntryInfo>[] lists, OpEntryInfo opEntryInfo) throws Exception {
-                if (opEntryInfo != null) {
-                    int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
-                    List<OpEntryInfo> list = lists[idx];
-                    if (list == null) {
-                        list = new ArrayList<OpEntryInfo>();
-                        lists[idx] = list;
-                    }
-                    list.add(opEntryInfo);
-                }
-            }
-        }).map(new Function<List<OpEntryInfo>[], List<OpEntryInfo>>() {
-            @Override
-            public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo>[] lists) throws Exception {
+        return Observable.fromIterable(list)
+                .collect(new Callable<List<OpEntryInfo>[]>() {
+                             @Override
+                             public List<OpEntryInfo>[] call() throws Exception {
+                                 return new List[2];
+                             }
+                         }
+                        , new BiConsumer<List<OpEntryInfo>[], OpEntryInfo>() {
+                            @Override
+                            public void accept(List<OpEntryInfo>[] lists, OpEntryInfo opEntryInfo) throws Exception {
+                                if (opEntryInfo != null) {
+                                    int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
+                                    List<OpEntryInfo> list = lists[idx];
+                                    if (list == null) {
+                                        list = new ArrayList<OpEntryInfo>();
+                                        lists[idx] = list;
+                                    }
+                                    list.add(opEntryInfo);
+                                }
+                            }
+                        })
+                .map(new Function<List<OpEntryInfo>[], List<OpEntryInfo>>() {
+                    @Override
+                    public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo>[] lists) throws Exception {
 
-                List<OpEntryInfo> ret = new ArrayList<OpEntryInfo>();
-                if (lists != null) {
-                    for (List<OpEntryInfo> list : lists) {
-                        if (list != null) {
-                            ret.addAll(Helper.sortPermsFunction(context, list));
+                        List<OpEntryInfo> ret = new ArrayList<OpEntryInfo>();
+                        if (lists != null) {
+                            for (List<OpEntryInfo> list : lists) {
+                                if (list != null) {
+                                    ret.addAll(Helper.sortPermsFunction(context, list));
+                                }
+                            }
                         }
+                        return ret;
                     }
-                }
-                return ret;
-            }
-        });
+                });
     }
 
 

@@ -21,6 +21,7 @@ import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
+import com.zzzmode.appopsx.ui.main.permission.OpSpinnerAdapter;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 import com.zzzmode.appopsx.ui.main.permission.AppPermissionActivity;
@@ -79,7 +80,7 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
         holder.itemView.setOnClickListener(this);
 
         holder.pair = pair;
-        holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(pair.second.mode, 0));
+        holder.spinner.setSelection(holder.opSpinnerAdapter.getPositionByOpMode(pair.second.mode));
         holder.initialized = true;
     }
 
@@ -120,9 +121,8 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
 
     static class ViewHolder extends RecyclerView.ViewHolder implements AdapterView.OnItemSelectedListener {
         private Pair<AppInfo, OpEntryInfo> pair;
+        private OpSpinnerAdapter opSpinnerAdapter;
         private boolean initialized = false;
-        private List<String> op_modes;
-        private Map<String, Integer> op_key_mode_map;
 
         ImageView imgPerm;
         ImageView imgIcon;
@@ -134,13 +134,6 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
         ViewHolder(View itemView) {
             super(itemView);
 
-            op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
-            op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
-                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
-                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
-            }};
-
             imgIcon = itemView.findViewById(R.id.app_icon);
             tvName = itemView.findViewById(R.id.app_name);
             spinner = itemView.findViewById(R.id.spinner);
@@ -148,7 +141,8 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
             tvPermName = itemView.findViewById(R.id.perm_name);
             imgPerm = itemView.findViewById(R.id.img_group);
             spinner = itemView.findViewById(R.id.spinner);
-            spinner.setAdapter(new ArrayAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item, op_modes));
+            opSpinnerAdapter = new OpSpinnerAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(opSpinnerAdapter);
             spinner.setOnItemSelectedListener(this);
         }
 
@@ -158,7 +152,7 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
                 return;
             }
             if (pair.second != null) {
-                int selectedMode = op_key_mode_map.get(parent.getItemAtPosition(position));
+                int selectedMode = opSpinnerAdapter.getOpMode(position);
                 if (selectedMode != pair.second.mode) {
                     pair.second.mode = selectedMode;
                     Helper.setMode(itemView.getContext(), pair.first.packageName, pair.second)

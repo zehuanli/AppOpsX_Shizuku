@@ -13,15 +13,16 @@ import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.app.IAppOpsService;
 import com.zzzmode.appopsx.common.common.OpEntry;
-import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.common.common.PackageOps;
 import com.zzzmode.appopsx.common.common.ReflectUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import moe.shizuku.api.ShizukuApiConstants;
@@ -117,11 +118,11 @@ public class ShizukuManager {
         return userManager.getUsers(excludeDying);
     }
 
-    public OpsResult getOpsForPackage(String packageName) {
+    public List<PackageOps> getOpsForPackage(String packageName) {
         return getOpsForPackage(packageName, userId);
     }
 
-    public OpsResult getOpsForPackage(String packageName, int userId) {
+    public List<PackageOps> getOpsForPackage(String packageName, int userId) {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         List<Parcelable> opsForPackage = appOpsService.getOpsForPackage(uid, packageName, null);
@@ -135,54 +136,50 @@ public class ShizukuManager {
             PackageOps packageOps = new PackageOps(packageName, uid, new ArrayList<OpEntry>());
             packageOpses.add(packageOps);
         }
-        return new OpsResult(packageOpses,null);
+        return packageOpses;
     }
 
-    public OpsResult setOpsMode(String packageName, int opInt, int modeInt) {
-        return setOpsMode(packageName, opInt, userId, modeInt);
+    public void setOpsMode(String packageName, int opInt, int modeInt) {
+        setOpsMode(packageName, opInt, userId, modeInt);
     }
 
-    public OpsResult setOpsMode(String packageName, int opInt, int userId, int modeInt) {
+    public void setOpsMode(String packageName, int opInt, int userId, int modeInt) {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         appOpsService.setMode(opInt, uid, packageName, modeInt);
-        return new OpsResult(new ArrayList<PackageOps>(), null);
     }
 
-    public OpsResult getPackagesForOps(int[] ops) {
+    public List<PackageOps> getPackagesForOps(int[] ops) throws RemoteException {
         checkShizuku();
         List opsForPackage = appOpsService.getPackagesForOps(ops);
         ArrayList<PackageOps> packageOpses = new ArrayList<>();
         if (opsForPackage != null) {
             for (Object o : opsForPackage) {
                 PackageOps packageOps = ReflectUtils.opsConvert(o);
+                if (getPackageUid(packageOps.getPackageName(), userId) == -1) {
+                    continue;
+                }
                 packageOpses.add(packageOps);
             }
         }
-        return new OpsResult(packageOpses, null);
+        return packageOpses;
     }
 
-    public OpsResult resetAllModes(String packageName) {
-        return resetAllModes(userId, packageName);
+    public void resetAllModes(String packageName) {
+        resetAllModes(userId, packageName);
     }
 
-    public OpsResult resetAllModes(int userId, String packageName) {
+    public void resetAllModes(int userId, String packageName) {
         checkShizuku();
         appOpsService.resetAllModes(userId, packageName);
-        return new OpsResult(new ArrayList<PackageOps>(), null);
     }
 
 
     private int getPackageUid(String packageName, int userId) {
         int uid = -1;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                uid = packageManager.getPackageUid(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES, userId);
-            } else {
-                uid = packageManager.getPackageUid(packageName, userId);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
+            uid = packageManager.getPackageUid(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES, userId);
+        } catch (Throwable ignored) {
         }
 
         if (uid == -1) {
@@ -195,8 +192,7 @@ public class ShizukuManager {
                 params.add(userId);
                 params.add(applicationInfo.uid);
                 uid = (int) ReflectUtils.invokMethod(UserHandle.class, "getUid", paramsType, params);
-            } catch (Throwable e) {
-                e.printStackTrace();
+            } catch (Throwable ignored) {
             }
         }
         return uid;

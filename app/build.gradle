@@ -19,6 +19,11 @@ android {
         manifestPlaceholders = [gitCommitId:"${GIT_COMMIT_ID}"]
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     aaptOptions {
         noCompress 'jar','sh'
     }

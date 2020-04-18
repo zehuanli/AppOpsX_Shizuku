@@ -5,11 +5,11 @@ import android.preference.PreferenceManager;
 import android.util.SparseIntArray;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.common.OpsResult;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 
+import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -170,20 +170,18 @@ class PermPresenter {
     void setMode(final OpEntryInfo info) {
         Helper.setMode(context, appInfo.packageName, info)
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ResourceObserver<OpsResult>() {
+                .subscribe(new CompletableObserver() {
                     @Override
-                    public void onNext(OpsResult value) {
+                    public void onSubscribe(Disposable d) {
+                    }
 
+                    @Override
+                    public void onComplete() {
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         mView.updateItem(info);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
     }
@@ -192,20 +190,18 @@ class PermPresenter {
         Helper.resetMode(context, appInfo.packageName)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleObserver<OpsResult>() {
-
+                .subscribe(new CompletableObserver() {
                     @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
+                    public void onSubscribe(Disposable d) {
                     }
 
                     @Override
-                    public void onSuccess(@NonNull OpsResult opsResult) {
+                    public void onComplete() {
                         load();
                     }
 
                     @Override
-                    public void onError(@NonNull Throwable e) {
+                    public void onError(Throwable e) {
 
                     }
                 });

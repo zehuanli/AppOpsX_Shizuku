@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemVie
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
+import com.zzzmode.appopsx.ui.main.permission.OpSpinnerAdapter;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.widget.ExpandableItemIndicator;
@@ -41,10 +43,8 @@ class PermissionGroupAdapter extends
     private OnGroupOtherClickListener mOnGroupOtherClickListener;
     private List<PermissionGroup> mData;
 
-
     private RecyclerViewExpandableItemManager mExpandableItemManager;
     private PermGroupPresenter mPresenter;
-
 
     PermissionGroupAdapter(RecyclerViewExpandableItemManager expandableItemManager, PermGroupPresenter permGroupPresenter) {
         mExpandableItemManager = expandableItemManager;
@@ -176,7 +176,7 @@ class PermissionGroupAdapter extends
         holder.permissionChildItem = appPermissions;
         holder.groupPosition = groupPosition;
         holder.childPosition = childPosition;
-        holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(appPermissions.opEntryInfo.mode, 0));
+        holder.spinner.setSelection(holder.opSpinnerAdapter.getPositionByOpMode(appPermissions.opEntryInfo.mode));
         holder.initialized = true;
     }
 
@@ -244,9 +244,8 @@ class PermissionGroupAdapter extends
         private int groupPosition;
         private int childPosition;
         private PermGroupPresenter permGroupPresenter;
+        private OpSpinnerAdapter opSpinnerAdapter;
         private boolean initialized = false;
-        private List<String> op_modes;
-        private Map<String, Integer> op_key_mode_map;
 
         ImageView imgIcon;
         TextView tvName;
@@ -256,18 +255,12 @@ class PermissionGroupAdapter extends
         ChildViewHolder(View itemView) {
             super(itemView);
 
-            op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
-            op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
-                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
-                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
-            }};
-
             imgIcon = itemView.findViewById(R.id.app_icon);
             tvName = itemView.findViewById(R.id.app_name);
             tvLastTime = itemView.findViewById(R.id.perm_last_time);
             spinner = itemView.findViewById(R.id.spinner);
-            spinner.setAdapter(new ArrayAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item, op_modes));
+            opSpinnerAdapter = new OpSpinnerAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(opSpinnerAdapter);
             spinner.setOnItemSelectedListener(this);
         }
 
@@ -277,7 +270,7 @@ class PermissionGroupAdapter extends
                 return;
             }
             if (permissionChildItem != null && permGroupPresenter != null) {
-                int selectedMode = op_key_mode_map.get(parent.getItemAtPosition(position));
+                int selectedMode = opSpinnerAdapter.getOpMode(position);
                 if (selectedMode != permissionChildItem.opEntryInfo.mode) {
                     int prevMode = permissionChildItem.opEntryInfo.mode;
                     permissionChildItem.opEntryInfo.mode = selectedMode;

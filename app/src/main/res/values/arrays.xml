@@ -45,6 +45,8 @@
   <string-array name="op_modes">
     <item>Allow</item>
     <item>Ignore</item>
+    <item>Forbid</item>
+    <item>"Default"</item>
     <item>Foreground</item>
   </string-array>
 </resources>

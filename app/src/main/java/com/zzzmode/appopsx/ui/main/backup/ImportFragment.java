@@ -43,17 +43,14 @@ public class ImportFragment extends BaseConfigFragment {
 
       }
     });
-
     adapter = new ImportAdapter();
     recyclerView.setAdapter(adapter);
-
     adapter.setItemClickListener(new ImportAdapter.OnItemClickListener() {
       @Override
       public void onItemClick(RestoreModel model) {
         showRestore(model);
       }
     });
-
     mPresenter = new ConfigPresenter(getContext().getApplicationContext(), this);
     reload();
   }

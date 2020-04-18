@@ -12,7 +12,6 @@ public class PackageOps implements Parcelable {
   private final String mPackageName;
   private final int mUid;
   private final List<OpEntry> mEntries;
-  private SparseArray<OpEntry> mSparseEntries = null;
 
   public PackageOps(String packageName, int uid, List<OpEntry> entries) {
     mPackageName = packageName;
@@ -30,18 +29,6 @@ public class PackageOps implements Parcelable {
 
   public List<OpEntry> getOps() {
     return mEntries;
-  }
-
-  public boolean hasOp(int op) {
-    if (mSparseEntries == null) {
-      mSparseEntries = new SparseArray<>();
-      if (mEntries != null) {
-        for (OpEntry entry : mEntries) {
-          mSparseEntries.put(entry.getOp(), entry);
-        }
-      }
-    }
-    return mSparseEntries.indexOfKey(op) >= 0;
   }
 
   @Override

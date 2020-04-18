@@ -3,6 +3,8 @@
   <string-array name="op_modes">
     <item>允许</item>
     <item>拒绝</item>
+    <item>禁止</item>
+    <item>"默认"</item>
     <item>前台时允许</item>
   </string-array>
 </resources>

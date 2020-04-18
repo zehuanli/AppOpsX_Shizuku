@@ -3,13 +3,16 @@ package com.zzzmode.appopsx.ui.main.permission;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.zzzmode.appopsx.R;
@@ -123,7 +126,7 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
 
             holder.opEntryInfo = opEntryInfo;
             holder.permPresenter = permPresenter;
-            holder.spinner.setSelection(AppOpsMode.OP_MODE_OPTION_INDEX_MAP.getOrDefault(opEntryInfo.mode, 0));
+            holder.spinner.setSelection(holder.opSpinnerAdapter.getPositionByOpMode(opEntryInfo.mode));
             holder.initialized = true;
         }
     }
@@ -136,9 +139,8 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
     static class ViewHolder extends RecyclerView.ViewHolder implements AdapterView.OnItemSelectedListener {
         private OpEntryInfo opEntryInfo;
         private PermPresenter permPresenter;
+        private OpSpinnerAdapter opSpinnerAdapter;
         private boolean initialized = false;
-        private List<String> op_modes;
-        private Map<String, Integer> op_key_mode_map;
 
         ImageView icon;
         TextView title;
@@ -149,19 +151,13 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
         ViewHolder(View itemView) {
             super(itemView);
 
-            op_modes = Arrays.asList(itemView.getContext().getResources().getStringArray(R.array.op_modes));
-            op_key_mode_map = new HashMap<String, Integer>() {{
-                put(op_modes.get(0), AppOpsMode.MODE_ALLOWED);
-                put(op_modes.get(1), AppOpsMode.MODE_IGNORED);
-                put(op_modes.get(2), AppOpsMode.MODE_FOREGROUND);
-            }};
-
             icon = itemView.findViewById(R.id.img_group);
             title = itemView.findViewById(android.R.id.title);
             summary = itemView.findViewById(android.R.id.summary);
             lastTime = itemView.findViewById(R.id.last_time);
             spinner = itemView.findViewById(R.id.spinner);
-            spinner.setAdapter(new ArrayAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item, op_modes));
+            opSpinnerAdapter = new OpSpinnerAdapter(itemView.getContext(), android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(opSpinnerAdapter);
             spinner.setOnItemSelectedListener(this);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -177,7 +173,7 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
                 return;
             }
             if (opEntryInfo != null && permPresenter != null) {
-                int selectedMode = op_key_mode_map.get(parent.getItemAtPosition(position));
+                int selectedMode = opSpinnerAdapter.getOpMode(position);
                 if (selectedMode != opEntryInfo.mode) {
                     opEntryInfo.mode = selectedMode;
                     permPresenter.setMode(opEntryInfo);

@@ -35,7 +35,7 @@ public class AppInstalledReceiver extends BroadcastReceiver {
       return;
     }
     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-    Helper.updataShortcuts(context.getApplicationContext());
+    Helper.updateShortcuts(context.getApplicationContext());
     if (sp.getBoolean("ignore_premission", true)) {
       try {
         String pkgName = intent.getData().getEncodedSchemeSpecificPart();

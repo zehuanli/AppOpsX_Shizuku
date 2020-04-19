@@ -1,4 +1,4 @@
-package com.zzzmode.appopsx.common.common;
+package com.zzzmode.appopsx.common;
 
 import android.os.Parcel;
 import android.os.Parcelable;

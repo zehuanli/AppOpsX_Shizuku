@@ -1,4 +1,4 @@
-package com.zzzmode.appopsx.ui.constraint;
+package com.zzzmode.appopsx.constraint;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,7 +15,7 @@ public class AppOps {
     public static final List<String> sOpPerms;
     public static final List<Integer> ALWAYS_SHOWN_OP;
     public static final List<String> PERMISSION_GROUP_ORDER;
-    public static final Map<Integer, String> OP_PERMISSION_GROUP_MAP;
+    public static final Map<Integer, String> OP_CUSTOM_PERMISSION_GROUP_MAP;
 
     public static final int OP_NONE = -1;
     public static final int OP_COARSE_LOCATION = 0;
@@ -534,7 +534,7 @@ public class AppOps {
             CustomPermissionGroup.SERVICE,
     };
 
-    private static Map<Integer, String> _OP_PERMISSION_GROUP_MAP = new HashMap<Integer, String>() {{
+    private static Map<Integer, String> _OP_CUSTOM_PERMISSION_GROUP_MAP = new HashMap<Integer, String>() {{
         put(OP_COARSE_LOCATION, CustomPermissionGroup.LOCATION);
         put(OP_FINE_LOCATION, CustomPermissionGroup.LOCATION);
         put(OP_GPS, CustomPermissionGroup.LOCATION);
@@ -653,6 +653,6 @@ public class AppOps {
         sOpPerms = Collections.unmodifiableList(Arrays.asList(_sOpPerms));
         ALWAYS_SHOWN_OP = Collections.unmodifiableList(Arrays.asList(_ALWAYS_SHOWN_OP));
         PERMISSION_GROUP_ORDER = Collections.unmodifiableList(Arrays.asList(_PERMISSION_GROUP_ORDER));
-        OP_PERMISSION_GROUP_MAP = Collections.unmodifiableMap(_OP_PERMISSION_GROUP_MAP);
+        OP_CUSTOM_PERMISSION_GROUP_MAP = Collections.unmodifiableMap(_OP_CUSTOM_PERMISSION_GROUP_MAP);
     }
 }

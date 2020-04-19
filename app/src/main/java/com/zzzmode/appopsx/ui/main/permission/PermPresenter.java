@@ -16,6 +16,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.ResourceObserver;
+import io.reactivex.observers.ResourceSingleObserver;
 import io.reactivex.schedulers.Schedulers;
 
 import java.util.List;
@@ -31,8 +32,6 @@ class PermPresenter {
     private IPermView mView;
     private Context context;
     private AppInfo appInfo;
-
-    private Observable<List<OpEntryInfo>> observable;
 
     private boolean loadSuccess = false;
 
@@ -59,17 +58,12 @@ class PermPresenter {
         boolean alwaysShownPerm = PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean("key_always_shown_perms", false);
 
-        observable = Helper.getAppPermission(context, appInfo.packageName, alwaysShownPerm);
-        observable.subscribeOn(Schedulers.io())
+        Helper.getAppPermission(context, appInfo.packageName, alwaysShownPerm)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ResourceObserver<List<OpEntryInfo>>() {
+                .subscribe(new ResourceSingleObserver<List<OpEntryInfo>>() {
                     @Override
-                    protected void onStart() {
-                        super.onStart();
-                    }
-
-                    @Override
-                    public void onNext(List<OpEntryInfo> opEntryInfos) {
+                    public void onSuccess(List<OpEntryInfo> opEntryInfos) {
                         if (opEntryInfos != null && !opEntryInfos.isEmpty()) {
                             if (autoDisabled) {
                                 if (sortByMode) {
@@ -93,9 +87,6 @@ class PermPresenter {
                         loadSuccess = false;
                     }
 
-                    @Override
-                    public void onComplete() {
-                    }
                 });
     }
 
@@ -205,16 +196,6 @@ class PermPresenter {
 
                     }
                 });
-    }
-
-    void destory() {
-        try {
-            if (observable != null) {
-                observable.unsubscribeOn(Schedulers.io());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     boolean isLoadSuccess() {

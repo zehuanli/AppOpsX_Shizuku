@@ -17,6 +17,7 @@ import com.zzzmode.appopsx.ui.BaseActivity;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
+import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.widget.CommonDivderDecorator;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
@@ -88,16 +89,16 @@ public class PermsUsageStatsActivity extends BaseActivity {
     Helper.getPermsUsageStatus(getApplicationContext(), showSysApp)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new ResourceSingleObserver<List<Pair<AppInfo, OpEntryInfo>>>() {
+        .subscribe(new ResourceSingleObserver<List<PermissionChildItem>>() {
           @Override
-          public void onSuccess(@NonNull List<Pair<AppInfo, OpEntryInfo>> pairs) {
+          public void onSuccess(@NonNull List<PermissionChildItem> permissionChildItems) {
             mProgressBar.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
             mSwipeRefreshLayout.setRefreshing(false);
             if (isFirst) {
               mSwipeRefreshLayout.setEnabled(true);
             }
-            adapter.showItems(pairs);
+            adapter.showItems(permissionChildItems);
             invalidateOptionsMenu();
           }
 

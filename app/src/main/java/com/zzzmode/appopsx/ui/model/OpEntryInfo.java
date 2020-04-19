@@ -1,8 +1,8 @@
 package com.zzzmode.appopsx.ui.model;
 
-import com.zzzmode.appopsx.common.common.OpEntry;
-import com.zzzmode.appopsx.ui.constraint.AppOps;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+import com.zzzmode.appopsx.common.OpEntry;
+import com.zzzmode.appopsx.constraint.AppOps;
+import com.zzzmode.appopsx.constraint.AppOpsMode;
 
 import java.util.List;
 

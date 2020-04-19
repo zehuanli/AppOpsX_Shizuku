@@ -127,14 +127,6 @@ public class AlertInstalledPremActivity extends BaseActivity implements IPermVie
   }
 
   @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    if(mPresenter != null) {
-      mPresenter.destory();
-    }
-  }
-
-  @Override
   public void showProgress(boolean show) {
     tvError.setVisibility(View.GONE);
     mProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);

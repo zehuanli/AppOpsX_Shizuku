@@ -22,14 +22,13 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 import androidx.core.text.BidiFormatter;
-import androidx.core.util.Pair;
 
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.common.common.OpEntry;
-import com.zzzmode.appopsx.common.common.PackageOps;
-import com.zzzmode.appopsx.ui.constraint.AppOps;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+import com.zzzmode.appopsx.common.OpEntry;
+import com.zzzmode.appopsx.common.PackageOps;
+import com.zzzmode.appopsx.constraint.AppOps;
+import com.zzzmode.appopsx.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.AppPermissions;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -69,7 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by zl on 2017/1/17.
@@ -156,29 +155,13 @@ public class Helper {
     public static void updateShortcuts(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             getInstalledApps(context, false)
-                    .concatMap(new Function<List<AppInfo>, ObservableSource<AppInfo>>() {
-                        @Override
-                        public ObservableSource<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
-                            return Observable.fromIterable(appInfos);
-                        }
-                    })
                     .filter(new Predicate<AppInfo>() {
                         @Override
                         public boolean test(AppInfo info) throws Exception {
                             return !BuildConfig.APPLICATION_ID.equals(info.packageName);
                         }
                     })
-                    .collect(new Callable<List<AppInfo>>() {
-                        @Override
-                        public List<AppInfo> call() throws Exception {
-                            return new ArrayList<AppInfo>();
-                        }
-                    }, new BiConsumer<List<AppInfo>, AppInfo>() {
-                        @Override
-                        public void accept(List<AppInfo> appInfos, AppInfo info) throws Exception {
-                            appInfos.add(info);
-                        }
-                    })
+                    .toList()
                     .map(new Function<List<AppInfo>, List<AppInfo>>() {
                         @Override
                         public List<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
@@ -194,9 +177,9 @@ public class Helper {
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ResourceSingleObserver<List<AppInfo>>() {
                         @Override
-                        public void onSuccess(List<AppInfo> value) {
+                        public void onSuccess(List<AppInfo> appInfoList) {
                             try {
-                                updateShortcuts(context, value);
+                                updateShortcuts(context, appInfoList);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -207,7 +190,6 @@ public class Helper {
 
                         }
                     });
-
         }
     }
 
@@ -264,9 +246,9 @@ public class Helper {
         return SingleJust.just(pkgName)
                 .map(new Function<String, AppInfo>() {
                     @Override
-                    public AppInfo apply(String s) throws Exception {
+                    public AppInfo apply(String pkgName) throws Exception {
                         PackageManager packageManager = context.getPackageManager();
-                        PackageInfo packageInfo = packageManager.getPackageInfo(s, 0);
+                        PackageInfo packageInfo = packageManager.getPackageInfo(pkgName, 0);
 
                         AppInfo info = new AppInfo();
                         info.packageName = packageInfo.packageName;
@@ -283,42 +265,47 @@ public class Helper {
                 });
     }
 
-    public static Observable<List<AppInfo>> getInstalledApps(final Context context,
-                                                             final boolean loadSysapp) {
+    public static Observable<AppInfo> getInstalledApps(final Context context, final boolean loadSysapp) {
+        return Single
+                .create(new SingleOnSubscribe<List<PackageInfo>>() {
+                    @Override
+                    public void subscribe(final SingleEmitter<List<PackageInfo>> e) throws Exception {
+                        int uid = Users.getInstance().getCurrentUid();
+                        e.onSuccess(ShizukuManager.getInstance(context).getInstalledPackages(0, uid));
 
-        return Observable.create(new ObservableOnSubscribe<List<AppInfo>>() {
-            @Override
-            public void subscribe(final ObservableEmitter<List<AppInfo>> e) throws Exception {
-                PackageManager packageManager = context.getPackageManager();
-                int uid = Users.getInstance().getCurrentUid();
-                List<PackageInfo> installedPackages = null;
-                installedPackages = ShizukuManager.getInstance(context).getInstalledPackages(0, uid);
-
-                List<AppInfo> ret = new ArrayList<AppInfo>();
-                for (PackageInfo installedPackage : installedPackages) {
-                    if (loadSysapp
-                            || (installedPackage.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                    }
+                }).flattenAsObservable(new Function<List<PackageInfo>, Iterable<PackageInfo>>() {
+                    @Override
+                    public Iterable<PackageInfo> apply(List<PackageInfo> packageInfos) throws Exception {
+                        return packageInfos;
+                    }
+                })
+                .filter(new Predicate<PackageInfo>() {
+                    @Override
+                    public boolean test(PackageInfo packageInfo) throws Exception {
+                        return loadSysapp || (packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0;
+                    }
+                })
+                .map(new Function<PackageInfo, AppInfo>() {
+                    @Override
+                    public AppInfo apply(PackageInfo packageInfo) throws Exception {
                         AppInfo info = new AppInfo();
-                        info.packageName = installedPackage.packageName;
+                        info.packageName = packageInfo.packageName;
                         info.appName = BidiFormatter.getInstance()
-                                .unicodeWrap(installedPackage.applicationInfo.loadLabel(packageManager)).toString();
+                                .unicodeWrap(packageInfo.applicationInfo.loadLabel(context.getPackageManager())).toString();
                         info.time = Math
-                                .max(installedPackage.lastUpdateTime, installedPackage.firstInstallTime);
-                        info.installTime = installedPackage.firstInstallTime;
-                        info.updateTime = installedPackage.lastUpdateTime;
-                        info.applicationInfo = installedPackage.applicationInfo;
+                                .max(packageInfo.lastUpdateTime, packageInfo.firstInstallTime);
+                        info.installTime = packageInfo.firstInstallTime;
+                        info.updateTime = packageInfo.lastUpdateTime;
+                        info.applicationInfo = packageInfo.applicationInfo;
                         LocalImageLoader.initAdd(context, info);
                         //some of the app name is empty.
                         if (TextUtils.isEmpty(info.appName)) {
                             info.appName = info.packageName;
                         }
-                        ret.add(info);
+                        return info;
                     }
-                }
-                e.onNext(ret);
-                e.onComplete();
-            }
-        });
+                });
     }
 
     // For exporting to the backup file
@@ -400,14 +387,14 @@ public class Helper {
                 });
     }
 
-    public static Observable<List<OpEntryInfo>> getAppPermission(final Context context,
-                                                                 final String packageName) {
+    public static Single<List<OpEntryInfo>> getAppPermission(final Context context,
+                                                             final String packageName) {
         return getAppPermission(context, packageName, false);
     }
 
 
-    public static Observable<List<OpEntryInfo>> getAppPermission(final Context context,
-                                                                 final String packageName, final boolean alwaysShownPerm) {
+    public static Single<List<OpEntryInfo>> getAppPermission(final Context context,
+                                                             final String packageName, final boolean alwaysShownPerm) {
         return Observable
                 .create(new ObservableOnSubscribe<List<PackageOps>>() {
                     @Override
@@ -441,7 +428,7 @@ public class Helper {
                     public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo> opEntryInfos) throws Exception {
                         return sortPermsFunction(context, opEntryInfos);
                     }
-                });
+                }).firstOrError();
     }
 
     private static Function<PackageOps, PackageOps> packageOpsAddAlwaysShownPerm(final Context context) {
@@ -521,18 +508,17 @@ public class Helper {
         return null;
     }
 
-    static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp) {
+    private static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp) {
         return getAllAppPermissions(context, loadSysapp, false);
     }
 
-    static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp, final boolean alwaysShownPerm) {
-        return Observable
-                .create(new ObservableOnSubscribe<List<PackageOps>>() {
+    private static Observable<AppPermissions> getAllAppPermissions(final Context context, final boolean loadSysapp, final boolean alwaysShownPerm) {
+        return Single
+                .create(new SingleOnSubscribe<List<PackageOps>>() {
                     @Override
-                    public void subscribe(ObservableEmitter<List<PackageOps>> e) throws Exception {
+                    public void subscribe(SingleEmitter<List<PackageOps>> e) throws Exception {
                         List<PackageOps> opsForPackage = ShizukuManager.getInstance(context).getPackagesForOps(null);
-                        e.onNext(opsForPackage);
-                        e.onComplete();
+                        e.onSuccess(opsForPackage);
                     }
                 })
                 .retry(5, new Predicate<Throwable>() {
@@ -541,107 +527,96 @@ public class Helper {
                         return throwable instanceof IOException || throwable instanceof NullPointerException;
                     }
                 })
-                .flatMap(Observable::fromIterable)
+                .flattenAsObservable(new Function<List<PackageOps>, List<PackageOps>>() {
+                    @Override
+                    public List<PackageOps> apply(List<PackageOps> packageOps) throws Exception {
+                        return packageOps;
+                    }
+                })
                 .compose(new ObservableTransformer<PackageOps, PackageOps>() {
                     @Override
                     public ObservableSource<PackageOps> apply(Observable<PackageOps> upstream) {
-                        if (alwaysShownPerm) {
-                            return upstream.map(packageOpsAddAlwaysShownPerm(context));
-                        } else {
-                            return upstream;
-                        }
+                        return alwaysShownPerm ? upstream.map(packageOpsAddAlwaysShownPerm(context)) : upstream;
                     }
                 })
                 .toList()
-                .toObservable()
                 .map(new Function<List<PackageOps>, Map<String, PackageOps>>() {
                     @Override
-                    public Map<String, PackageOps> apply(List<PackageOps> result) throws Exception {
+                    public Map<String, PackageOps> apply(List<PackageOps> packageOpsList) throws Exception {
                         Map<String, PackageOps> map = new HashMap<>();
-                        for (PackageOps packageOps : result) {
+                        for (PackageOps packageOps : packageOpsList) {
                             map.put(packageOps.getPackageName(), packageOps);
                         }
                         return map;
                     }
                 })
-                .flatMap(new Function<Map<String, PackageOps>, ObservableSource<List<AppPermissions>>>() {
-                    public ObservableSource<List<AppPermissions>> apply(final Map<String, PackageOps> result) throws Exception {
-                        return getInstalledApps(context, loadSysapp).map(
-                                new Function<List<AppInfo>, List<AppPermissions>>() {
+                .flatMapObservable(new Function<Map<String, PackageOps>, ObservableSource<AppPermissions>>() {
+                    @Override
+                    public ObservableSource<AppPermissions> apply(final Map<String, PackageOps> packageOpsMap) throws Exception {
+                        return getInstalledApps(context, loadSysapp)
+                                .filter(new Predicate<AppInfo>() {
                                     @Override
-                                    public List<AppPermissions> apply(List<AppInfo> appInfos) throws Exception {
-                                        List<AppPermissions> list = new ArrayList<AppPermissions>();
+                                    public boolean test(AppInfo appInfo) throws Exception {
+                                        PackageOps packageOps = packageOpsMap.getOrDefault(appInfo.packageName, null);
+                                        return packageOps != null && packageOps.getOps() != null;
+                                    }
+                                })
+                                .map(new Function<AppInfo, AppPermissions>() {
+                                    @Override
+                                    public AppPermissions apply(AppInfo appInfo) throws Exception {
                                         PackageManager pm = context.getPackageManager();
-                                        if (appInfos != null) {
-                                            for (AppInfo appInfo : appInfos) {
-                                                AppPermissions p = new AppPermissions();
-                                                p.appInfo = appInfo;
-                                                PackageOps packageOps = result.get(appInfo.packageName);
-                                                if (packageOps != null) {
-                                                    List<OpEntry> ops = packageOps.getOps();
-                                                    if (ops != null) {
-                                                        List<OpEntryInfo> opEntryInfos = new ArrayList<>();
-                                                        SparseIntArray hasOp = new SparseIntArray();
-                                                        for (OpEntry op : ops) {
-                                                            OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
-                                                            if (opEntryInfo != null) {
-                                                                hasOp.put(op.getOp(), op.getOp());
-                                                                opEntryInfos.add(opEntryInfo);
-                                                            }
-                                                        }
-                                                        p.opEntries = opEntryInfos;
-                                                        list.add(p);
-                                                    }
-                                                }
+                                        AppPermissions p = new AppPermissions();
+                                        p.appInfo = appInfo;
+                                        List<OpEntry> ops = packageOpsMap.get(appInfo.packageName).getOps();
+                                        List<OpEntryInfo> opEntryInfos = new ArrayList<>();
+                                        SparseIntArray hasOp = new SparseIntArray();
+                                        for (OpEntry op : ops) {
+                                            OpEntryInfo opEntryInfo = opEntry2Info(op, context, pm);
+                                            if (opEntryInfo != null) {
+                                                hasOp.put(op.getOp(), op.getOp());
+                                                opEntryInfos.add(opEntryInfo);
                                             }
                                         }
-                                        return list;
+                                        p.opEntries = opEntryInfos;
+                                        return p;
                                     }
                                 });
                     }
-                })
-                .flatMap(Observable::fromIterable);
+                });
     }
 
 
-    public static Single<List<Pair<AppInfo, OpEntryInfo>>> getPermsUsageStatus(final Context context,
+    public static Single<List<PermissionChildItem>> getPermsUsageStatus(final Context context,
                                                                                final boolean loadSysapp) {
         return getAllAppPermissions(context, loadSysapp)
-                .collect(new Callable<List<Pair<AppInfo, OpEntryInfo>>>() {
-                             @Override
-                             public List<Pair<AppInfo, OpEntryInfo>> call() throws Exception {
-                                 return new ArrayList<Pair<AppInfo, OpEntryInfo>>();
-                             }
-                         }
-                        , new BiConsumer<List<Pair<AppInfo, OpEntryInfo>>, AppPermissions>() {
+                .collectInto(new ArrayList<>(), new BiConsumer<List<PermissionChildItem>, AppPermissions>() {
                             @Override
-                            public void accept(List<Pair<AppInfo, OpEntryInfo>> pairs, AppPermissions appPermissions) {
+                            public void accept(List<PermissionChildItem> permissionChildItems, AppPermissions appPermissions) {
                                 if (appPermissions.opEntries != null) {
-                                    for (OpEntryInfo opEntry : appPermissions.opEntries) {
+                                    for (OpEntryInfo opEntryInfo : appPermissions.opEntries) {
                                         //被调用过并且允许的才加入列表
                                         //超过一个月的记录不显示
-                                        long time = opEntry.opEntry.getTime();
+                                        long time = opEntryInfo.opEntry.getTime();
                                         long now = System.currentTimeMillis();
-                                        if (time > 0 && (now - time < 60 * 60 * 24 * 31 * 1000L) && opEntry.isAllowOrForeground()) {
-                                            joinOpEntryInfo(opEntry, context);
-                                            pairs.add(Pair.create(appPermissions.appInfo, opEntry));
+                                        if (time > 0 && (now - time < TimeUnit.DAYS.toMillis(30)) && opEntryInfo.isAllowOrForeground()) {
+                                            joinOpEntryInfoInline(opEntryInfo, context);
+                                            permissionChildItems.add(new PermissionChildItem(appPermissions.appInfo, opEntryInfo));
                                         }
                                     }
                                 }
                             }
                         })
-                .flatMapObservable(new Function<List<Pair<AppInfo, OpEntryInfo>>, ObservableSource<Pair<AppInfo, OpEntryInfo>>>() {
-                                       @Override
-                                       public ObservableSource<Pair<AppInfo, OpEntryInfo>> apply(@NonNull List<Pair<AppInfo, OpEntryInfo>> pairs)
-                                               throws Exception {
-                                           return Observable.fromIterable(pairs);
-                                       }
-                                   }
-                ).toSortedList(new Comparator<Pair<AppInfo, OpEntryInfo>>() {
+                .flattenAsObservable(new Function<ArrayList<PermissionChildItem>, ArrayList<PermissionChildItem>>() {
                     @Override
-                    public int compare(Pair<AppInfo, OpEntryInfo> t0,
-                                       Pair<AppInfo, OpEntryInfo> t1) {
-                        return Long.compare(t1.second.opEntry.getTime(), t0.second.opEntry.getTime());
+                    public ArrayList<PermissionChildItem> apply(ArrayList<PermissionChildItem> permissionChildItems) throws Exception {
+                        return permissionChildItems;
+                    }
+                })
+                .toSortedList(new Comparator<PermissionChildItem>() {
+                    @Override
+                    public int compare(PermissionChildItem permissionChildItem0,
+                                       PermissionChildItem permissionChildItem1) {
+                        return Long.compare(permissionChildItem1.opEntryInfo.opEntry.getTime(), permissionChildItem0.opEntryInfo.opEntry.getTime());
                     }
                 });
     }
@@ -649,17 +624,12 @@ public class Helper {
     public static Single<List<PermissionGroup>> getPermissionGroup(final Context context,
                                                                    final boolean loadSysapp, final boolean showIgnored, final boolean alwaysShownPerm) {
         return getAllAppPermissions(context, loadSysapp, alwaysShownPerm)
-                .collect(new Callable<Map<Integer, List<AppPermissions>>>() {
-                             @Override
-                             public Map<Integer, List<AppPermissions>> call() throws Exception {
-                                 return new HashMap<>();
-                             }
-                         }
-                        , new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
+                // Group by opInt
+                .collectInto(new HashMap<>(), new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
                             @Override
                             public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
                                     throws Exception {
-                                if (app.opEntries != null && app.hasPermissions()) {
+                                if (app.hasPermissions()) {
                                     for (OpEntryInfo opEntryInfo : app.opEntries) {
                                         if (opEntryInfo.opEntry != null) {
                                             List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
@@ -686,13 +656,13 @@ public class Helper {
                             group.count = value.size();
                             group.apps = new ArrayList<PermissionChildItem>();
                             for (AppPermissions appPermissions : value) {
-                                PermissionChildItem item = new PermissionChildItem();
-                                item.appInfo = appPermissions.appInfo;
+                                PermissionChildItem permissionChildItem = new PermissionChildItem();
+                                permissionChildItem.appInfo = appPermissions.appInfo;
                                 boolean skip = false;
                                 if (appPermissions.opEntries != null) {
                                     for (OpEntryInfo opEntryInfo : appPermissions.opEntries) {
                                         if (group.opInt == opEntryInfo.opEntry.getOp()) {
-                                            item.opEntryInfo = opEntryInfo;
+                                            permissionChildItem.opEntryInfo = opEntryInfo;
                                             if (opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_ALLOWED
                                                     || opEntryInfo.opEntry.getMode() == AppOpsMode.MODE_FOREGROUND) {
                                                 group.grants += 1;
@@ -708,7 +678,7 @@ public class Helper {
                                     }
                                 }
                                 if (!skip) {
-                                    group.apps.add(item);
+                                    group.apps.add(permissionChildItem);
                                 }
                             }
                             Collections.sort(group.apps, new Comparator<PermissionChildItem>() {
@@ -729,7 +699,7 @@ public class Helper {
                         Map<String, List<PermissionGroup>> groups = new HashMap<String, List<PermissionGroup>>();
                         PackageManager pm = context.getPackageManager();
                         for (PermissionGroup permissionGroup : permissionGroups) {
-                            String groupS = AppOps.OP_PERMISSION_GROUP_MAP.get(permissionGroup.opInt);
+                            String groupS = AppOps.OP_CUSTOM_PERMISSION_GROUP_MAP.get(permissionGroup.opInt);
                             if (groupS == null && permissionGroup.opPermsName != null) {
                                 try {
                                     PermissionInfo permissionInfo = pm
@@ -833,7 +803,7 @@ public class Helper {
             @Override
             public SparseIntArray apply(String s) throws Exception {
 
-                List<OpEntryInfo> opEntryInfos = getAppPermission(context, s).blockingFirst();
+                List<OpEntryInfo> opEntryInfos = getAppPermission(context, s).blockingGet();
 
                 SparseIntArray canIgnored = new SparseIntArray();//可以忽略的op
                 if (opEntryInfos != null && !opEntryInfos.isEmpty()) {
@@ -962,63 +932,13 @@ public class Helper {
         return ret;
     }
 
-    public static Function<List<AppInfo>, List<AppInfo>> getSortComparator(final Context context) {
-        return new Function<List<AppInfo>, List<AppInfo>>() {
-            @Override
-            public List<AppInfo> apply(List<AppInfo> appInfos) throws Exception {
-                final int type = PreferenceManager.getDefaultSharedPreferences(context)
-                        .getInt("pref_app_sort_type", 0);
-                Comparator<AppInfo> comparator = null;
-                switch (type) {
-                    case 0: // pass through
-                    case 1:
-                        comparator = new Comparator<AppInfo>() {
-                            @Override
-                            public int compare(AppInfo o1, AppInfo o2) {
-                                return o2.appName.toLowerCase().compareTo(o1.appName.toLowerCase()) * (type * 2 - 1);
-                            }
-                        };
-                        break;
-                    case 2:
-                        //按安装时间排序
-                        comparator = new Comparator<AppInfo>() {
-                            @Override
-                            public int compare(AppInfo o1, AppInfo o2) {
-                                return Long.compare(o2.installTime, o1.installTime);
-                            }
-                        };
-                        break;
-                    case 3:
-                        //按最后更新时间排序
-                        comparator = new Comparator<AppInfo>() {
-                            @Override
-                            public int compare(AppInfo o1, AppInfo o2) {
-                                return Long.compare(Math.max(o2.installTime, o2.updateTime),
-                                        Math.max(o1.installTime, o1.updateTime));
-                            }
-                        };
-                        break;
-                    default:
-                        break;
-                }
-
-                if (comparator != null) {
-                    Collections.sort(appInfos, comparator);
-                }
-
-                return appInfos;
-            }
-        };
-    }
-
-
     public static List<OpEntryInfo> sortPermsFunction(Context context,
                                                       List<OpEntryInfo> opEntryInfos) {
         //resort
         Map<String, List<OpEntryInfo>> sMap = new HashMap<>();
         for (OpEntryInfo opEntryInfo : opEntryInfos) {
             if (opEntryInfo != null) {
-                joinOpEntryInfo(opEntryInfo, context);
+                joinOpEntryInfoInline(opEntryInfo, context);
                 List<OpEntryInfo> infos = sMap.get(opEntryInfo.groupName);
                 if (infos == null) {
                     infos = new ArrayList<>();
@@ -1039,8 +959,8 @@ public class Helper {
         return infoList;
     }
 
-    private static void joinOpEntryInfo(OpEntryInfo opEntryInfo, Context context) {
-        String groupS = AppOps.OP_PERMISSION_GROUP_MAP.get(opEntryInfo.opEntry.getOp());
+    private static void joinOpEntryInfoInline(OpEntryInfo opEntryInfo, Context context) {
+        String groupS = AppOps.OP_CUSTOM_PERMISSION_GROUP_MAP.get(opEntryInfo.opEntry.getOp());
         try {
             if (groupS == null && opEntryInfo.opPermsName != null) {
                 PermissionInfo permissionInfo = context.getPackageManager()
@@ -1067,15 +987,9 @@ public class Helper {
                                                         List<OpEntryInfo> list) {
 
         return Observable.fromIterable(list)
-                .collect(new Callable<List<OpEntryInfo>[]>() {
-                             @Override
-                             public List<OpEntryInfo>[] call() throws Exception {
-                                 return new List[2];
-                             }
-                         }
-                        , new BiConsumer<List<OpEntryInfo>[], OpEntryInfo>() {
+                .collectInto(new List[2], new BiConsumer<List[], OpEntryInfo>() {
                             @Override
-                            public void accept(List<OpEntryInfo>[] lists, OpEntryInfo opEntryInfo) throws Exception {
+                            public void accept(List[] lists, OpEntryInfo opEntryInfo) throws Exception {
                                 if (opEntryInfo != null) {
                                     int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
                                     List<OpEntryInfo> list = lists[idx];
@@ -1087,13 +1001,13 @@ public class Helper {
                                 }
                             }
                         })
-                .map(new Function<List<OpEntryInfo>[], List<OpEntryInfo>>() {
+                .map(new Function<List[], List<OpEntryInfo>>() {
                     @Override
-                    public List<OpEntryInfo> apply(@NonNull List<OpEntryInfo>[] lists) throws Exception {
+                    public List<OpEntryInfo> apply(@NonNull List[] lists) throws Exception {
 
                         List<OpEntryInfo> ret = new ArrayList<OpEntryInfo>();
                         if (lists != null) {
-                            for (List<OpEntryInfo> list : lists) {
+                            for (List list : lists) {
                                 if (list != null) {
                                     ret.addAll(Helper.sortPermsFunction(context, list));
                                 }

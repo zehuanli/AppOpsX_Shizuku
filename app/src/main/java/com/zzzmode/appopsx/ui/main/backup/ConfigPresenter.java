@@ -4,11 +4,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+import com.zzzmode.appopsx.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.PreAppInfo;
@@ -16,7 +15,6 @@ import com.zzzmode.appopsx.ui.model.PreAppInfo;
 import io.reactivex.Completable;
 import io.reactivex.CompletableSource;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
@@ -25,7 +23,6 @@ import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.observers.ResourceCompletableObserver;
-import io.reactivex.observers.ResourceObserver;
 import io.reactivex.schedulers.Schedulers;
 
 import java.io.File;
@@ -33,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONArray;
@@ -68,12 +63,7 @@ class ConfigPresenter {
             public void accept(@NonNull PreAppInfo appInfo) throws Exception {
                 mView.setProgress(progress.incrementAndGet());
             }
-        }).collect(new Callable<List<PreAppInfo>>() {
-            @Override
-            public List<PreAppInfo> call() throws Exception {
-                return new ArrayList<PreAppInfo>();
-            }
-        }, new BiConsumer<List<PreAppInfo>, PreAppInfo>() {
+        }).collectInto(new ArrayList<PreAppInfo>(), new BiConsumer<List<PreAppInfo>, PreAppInfo>() {
             @Override
             public void accept(List<PreAppInfo> preAppInfos, PreAppInfo appInfo) throws Exception {
                 preAppInfos.add(appInfo);
@@ -293,7 +283,7 @@ class ConfigPresenter {
             @Override
             public void onComplete() {
                 mView.showProgress(false, 0);
-                Toast.makeText(context, "恢复成功", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, R.string.perm_restore_success, Toast.LENGTH_LONG).show();
             }
         });
     }

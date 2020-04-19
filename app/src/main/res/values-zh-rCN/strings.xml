@@ -84,7 +84,7 @@
   <string name="perm_export">导出</string>
   <string name="perm_import">导入</string>
   <string name="perm_restore">恢复</string>
-  <string name="dlg_title">提示</string>
+  <string name="dlg_title">进度</string>
   <string name="backup_success">备份保存成功：%1$s</string>
   <string name="backup_file_lack">备份文件已损坏</string>
   <string name="backup_count">备份应用条数：%1$d</string>
@@ -108,7 +108,7 @@
 
 
   <string name="never_used">(从未使用)</string>
-  <string name="reject_prefix">拒绝于</string>
+  <string name="reject_time">拒绝于 %1$s</string>
 
   <string name="menu_app_info">应用信息</string>
 
@@ -122,4 +122,5 @@
   <string name="show_ignored_app">显示已忽略的应用</string>
   <string name="action_users">用户</string>
     <string name="menu_always_shown_permission_summary">在权限列表中展示所有“始终显示的权限\"</string>
+  <string name="perm_restore_success">恢复成功</string>
 </resources>

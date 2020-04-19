@@ -66,7 +66,7 @@
   <string name="perm_export">Export</string>
   <string name="perm_import">Import</string>
   <string name="perm_restore">Restore</string>
-  <string name="dlg_title">Tips</string>
+  <string name="dlg_title">Progress</string>
   <string name="backup_success">Backup successfully: %1$s</string>
   <string name="backup_file_lack">Backup file is corrupted</string>
   <string name="backup_count">App number of backup: %1$d</string>
@@ -84,7 +84,7 @@
   <string name="sort_by_installed_time">Sort by install time</string>
   <string name="sort_by_last_updated_time">Sort by update time</string>
   <string name="never_used">(Never used)</string>
-  <string name="reject_prefix">Rejected&#160;</string>
+  <string name="reject_time">Rejected %1$s</string>
   <string name="menu_app_info">App info</string>
   <string name="menu_stats">Usage stats</string>
   <string name="perms_count">%1$s (used %2$d times)</string>
@@ -92,4 +92,5 @@
   <string name="show_ignored_app">Display ignored apps</string>
   <string name="action_users">Users</string>
   <string name="menu_always_shown_permission_summary">Display \"always-shown permissions\" in the permission list</string>
+    <string name="perm_restore_success">Restore complete</string>
 </resources>

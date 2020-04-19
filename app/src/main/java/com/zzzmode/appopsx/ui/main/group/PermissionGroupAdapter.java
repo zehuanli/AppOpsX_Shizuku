@@ -6,12 +6,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -21,17 +19,13 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
 import com.zzzmode.appopsx.ui.main.permission.OpSpinnerAdapter;
 import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 import com.zzzmode.appopsx.ui.model.PermissionGroup;
 import com.zzzmode.appopsx.ui.widget.ExpandableItemIndicator;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zl on 2017/1/18.
@@ -160,8 +154,7 @@ class PermissionGroupAdapter extends
             if (time > 0) {
                 sb.append("\n");
             }
-            sb.append(holder.itemView.getContext().getString(R.string.reject_prefix));
-            sb.append(DateUtils.getRelativeTimeSpanString(rejectTime, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME));
+            sb.append(holder.itemView.getContext().getString(R.string.reject_time, DateUtils.getRelativeTimeSpanString(rejectTime, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME)));
         }
         if (sb.length() > 0) {
             holder.tvLastTime.setText(sb.toString());

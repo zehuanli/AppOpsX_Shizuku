@@ -1,4 +1,4 @@
-package com.zzzmode.appopsx.common.common;
+package com.zzzmode.appopsx.common;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

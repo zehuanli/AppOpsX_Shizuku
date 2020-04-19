@@ -24,11 +24,7 @@ public class LangHelper {
   private static Map<String,Locale> sLocalMap = new HashMap<>();
   private static Locale sDefaultLocal = null;
   static {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      sDefaultLocal = LocaleList.getDefault().get(0);
-    }else {
-      sDefaultLocal = Locale.getDefault();
-    }
+    sDefaultLocal = LocaleList.getDefault().get(0);
 
     sLocalMap.put("zh-cn",Locale.SIMPLIFIED_CHINESE);
     sLocalMap.put("zh-tw",Locale.TRADITIONAL_CHINESE);

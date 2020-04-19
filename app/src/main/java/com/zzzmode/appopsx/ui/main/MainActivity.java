@@ -147,49 +147,52 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
         boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .getBoolean("show_sysapp", false);
         Helper.getInstalledApps(getApplicationContext(), showSysApp)
-                .map(Helper.getSortComparator(getApplicationContext())).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new ResourceObserver<List<AppInfo>>() {
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ResourceObserver<AppInfo>() {
+                    @Override
+                    protected void onStart() {
+                        super.onStart();
+                        if (isFirst) {
+                            mProgressBar.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        }
+                        adapter.clearItems();
+                    }
 
-            @Override
-            protected void onStart() {
-                super.onStart();
-                if (isFirst) {
-                    mProgressBar.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.GONE);
-                }
-            }
+                    @Override
+                    public void onNext(AppInfo appInfo) {
+                        adapter.addItem(appInfo);
 
-            @Override
-            public void onNext(List<AppInfo> value) {
-                adapter.showItems(value);
-                mSearchHandler.setBaseData(new ArrayList<>(value));
+                    }
 
-                invalidateOptionsMenu();
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        mProgressBar.setVisibility(View.GONE);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        if (isFirst) {
+                            mSwipeRefreshLayout.setEnabled(true);
+                        }
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
 
-            }
+                        invalidateOptionsMenu();
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                e.printStackTrace();
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    @Override
+                    public void onComplete() {
+                        adapter.sortItems(getApplicationContext());
+                        mSearchHandler.setBaseData(adapter.getAppInfos());
+                        mProgressBar.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        if (isFirst) {
+                            mSwipeRefreshLayout.setEnabled(true);
+                        }
 
-                invalidateOptionsMenu();
-            }
-
-            @Override
-            public void onComplete() {
-                mProgressBar.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                mSwipeRefreshLayout.setRefreshing(false);
-
-                if (isFirst) {
-                    mSwipeRefreshLayout.setEnabled(true);
-                }
-
-                invalidateOptionsMenu();
-            }
-        });
+                        invalidateOptionsMenu();
+                    }
+                });
     }
 
 

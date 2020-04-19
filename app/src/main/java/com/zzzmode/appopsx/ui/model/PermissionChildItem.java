@@ -6,6 +6,14 @@ package com.zzzmode.appopsx.ui.model;
 
 public class PermissionChildItem {
 
-  public AppInfo appInfo;
-  public OpEntryInfo opEntryInfo;
+    public AppInfo appInfo;
+    public OpEntryInfo opEntryInfo;
+
+  public PermissionChildItem() {
+  }
+
+    public PermissionChildItem(AppInfo appInfo, OpEntryInfo opEntryInfo) {
+        this.appInfo = appInfo;
+        this.opEntryInfo = opEntryInfo;
+    }
 }

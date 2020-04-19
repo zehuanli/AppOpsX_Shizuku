@@ -1,8 +1,7 @@
-package com.zzzmode.appopsx.common.common;
+package com.zzzmode.appopsx.common;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.List;

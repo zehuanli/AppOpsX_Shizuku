@@ -3,27 +3,19 @@ package com.zzzmode.appopsx.ui.main.permission;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zl on 2016/11/18.
@@ -111,8 +103,7 @@ class AppPermissionAdapter extends RecyclerView.Adapter<AppPermissionAdapter.Vie
                     if (time > 0) {
                         sb.append("\n");
                     }
-                    sb.append(holder.itemView.getContext().getString(R.string.reject_prefix));
-                    sb.append(DateUtils.getRelativeTimeSpanString(rejectTime, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME));
+                    sb.append(holder.itemView.getContext().getString(R.string.reject_time, DateUtils.getRelativeTimeSpanString(rejectTime, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME)));
                 }
                 if (sb.length() > 0) {
                     holder.lastTime.setText(sb.toString());

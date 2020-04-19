@@ -1,10 +1,8 @@
-package com.zzzmode.appopsx.ui.constraint;
+package com.zzzmode.appopsx.constraint;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AppOpsMode {
     public static final int MODE_ALLOWED = 0;

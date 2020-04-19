@@ -39,8 +39,8 @@ public class AppGlobal extends Application implements Application.ActivityLifecy
 
     LangHelper.updateLanguage(this);
     registerActivityLifecycleCallbacks(this);
-    Helper.updateShortcuts(this);
     ShizukuManager.getInstance(getApplicationContext());
+    Helper.updateShortcuts(this);
     installReceiver();
 
   }

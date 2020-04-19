@@ -3,7 +3,6 @@ package com.zzzmode.appopsx.ui.main.usagestats;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
-import androidx.core.util.Pair;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.format.DateUtils;
@@ -12,28 +11,22 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LocalImageLoader;
 import com.zzzmode.appopsx.ui.main.permission.OpSpinnerAdapter;
-import com.zzzmode.appopsx.ui.model.AppInfo;
-import com.zzzmode.appopsx.ui.model.OpEntryInfo;
 import com.zzzmode.appopsx.ui.main.permission.AppPermissionActivity;
+import com.zzzmode.appopsx.ui.model.PermissionChildItem;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zl on 2017/8/16.
@@ -41,9 +34,9 @@ import java.util.Map;
 class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolder> implements OnClickListener {
     private static final String TAG = "UsageStatsAdapter";
 
-    private List<Pair<AppInfo, OpEntryInfo>> mDatas = new ArrayList<>();
+    private List<PermissionChildItem> mDatas = new ArrayList<>();
 
-    void showItems(List<Pair<AppInfo, OpEntryInfo>> value) {
+    void showItems(List<PermissionChildItem> value) {
         mDatas.clear();
         if (value != null) {
             mDatas.addAll(value);
@@ -60,14 +53,14 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        Pair<AppInfo, OpEntryInfo> pair = mDatas.get(position);
+        PermissionChildItem permissionChildItem = mDatas.get(position);
 
-        LocalImageLoader.load(holder.imgIcon, pair.first);
+        LocalImageLoader.load(holder.imgIcon, permissionChildItem.appInfo);
 
-        holder.tvName.setText(pair.first.appName);
-        holder.imgPerm.setImageResource(pair.second.icon);
+        holder.tvName.setText(permissionChildItem.appInfo.appName);
+        holder.imgPerm.setImageResource(permissionChildItem.opEntryInfo.icon);
 
-        long time = pair.second.opEntry.getTime();
+        long time = permissionChildItem.opEntryInfo.opEntry.getTime();
         if (time > 0) {
             holder.tvLastTime.setText(DateUtils
                     .getRelativeTimeSpanString(time, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS,
@@ -75,12 +68,12 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
         } else {
             holder.tvLastTime.setText(R.string.never_used);
         }
-        holder.tvPermName.setText(pair.second.opPermsLab);
+        holder.tvPermName.setText(permissionChildItem.opEntryInfo.opPermsLab);
         holder.itemView.setTag(holder);
         holder.itemView.setOnClickListener(this);
 
-        holder.pair = pair;
-        holder.spinner.setSelection(holder.opSpinnerAdapter.getPositionByOpMode(pair.second.mode));
+        holder.permissionChildItem = permissionChildItem;
+        holder.spinner.setSelection(holder.opSpinnerAdapter.getPositionByOpMode(permissionChildItem.opEntryInfo.mode));
         holder.initialized = true;
     }
 
@@ -94,10 +87,10 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
         Object tag = view.getTag();
         if (tag instanceof ViewHolder) {
             ViewHolder holder = ((ViewHolder) tag);
-            Pair<AppInfo, OpEntryInfo> pair = mDatas.get(holder.getAdapterPosition());
+            PermissionChildItem permissionChildItem = mDatas.get(holder.getAdapterPosition());
 
             Intent intent = new Intent(view.getContext(), AppPermissionActivity.class);
-            intent.putExtra(AppPermissionActivity.EXTRA_APP, pair.first);
+            intent.putExtra(AppPermissionActivity.EXTRA_APP, permissionChildItem.appInfo);
             view.getContext().startActivity(intent);
         }
     }
@@ -120,7 +113,7 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
    */
 
     static class ViewHolder extends RecyclerView.ViewHolder implements AdapterView.OnItemSelectedListener {
-        private Pair<AppInfo, OpEntryInfo> pair;
+        private PermissionChildItem permissionChildItem;
         private OpSpinnerAdapter opSpinnerAdapter;
         private boolean initialized = false;
 
@@ -151,11 +144,11 @@ class UsageStatsAdapter extends RecyclerView.Adapter<UsageStatsAdapter.ViewHolde
             if (!initialized) {
                 return;
             }
-            if (pair.second != null) {
+            if (permissionChildItem.opEntryInfo != null) {
                 int selectedMode = opSpinnerAdapter.getOpMode(position);
-                if (selectedMode != pair.second.mode) {
-                    pair.second.mode = selectedMode;
-                    Helper.setMode(itemView.getContext(), pair.first.packageName, pair.second)
+                if (selectedMode != permissionChildItem.opEntryInfo.mode) {
+                    permissionChildItem.opEntryInfo.mode = selectedMode;
+                    Helper.setMode(itemView.getContext(), permissionChildItem.appInfo.packageName, permissionChildItem.opEntryInfo)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe();

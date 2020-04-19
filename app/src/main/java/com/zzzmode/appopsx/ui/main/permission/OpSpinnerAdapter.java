@@ -1,14 +1,13 @@
 package com.zzzmode.appopsx.ui.main.permission;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.zzzmode.appopsx.R;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+import com.zzzmode.appopsx.constraint.AppOpsMode;
 
 import java.util.ArrayList;
 import java.util.Arrays;

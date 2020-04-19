@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.ui.BaseActivity;
-import com.zzzmode.appopsx.ui.constraint.AppOpsMode;
+import com.zzzmode.appopsx.constraint.AppOpsMode;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.model.AppInfo;
 import com.zzzmode.appopsx.ui.model.OpEntryInfo;
@@ -130,14 +130,6 @@ public class AppPermissionActivity extends BaseActivity implements IPermView {
 
           }
         });
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    if (mPresenter != null) {
-      mPresenter.destory();
-    }
   }
 
   @Override

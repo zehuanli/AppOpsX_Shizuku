@@ -7,22 +7,19 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.pm.UserInfo;
-import android.os.Build;
 import android.os.IUserManager;
 import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.app.IAppOpsService;
-import com.zzzmode.appopsx.common.common.OpEntry;
-import com.zzzmode.appopsx.common.common.PackageOps;
-import com.zzzmode.appopsx.common.common.ReflectUtils;
+import com.zzzmode.appopsx.common.OpEntry;
+import com.zzzmode.appopsx.common.PackageOps;
+import com.zzzmode.appopsx.common.ReflectUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import moe.shizuku.api.ShizukuApiConstants;
@@ -118,11 +115,14 @@ public class ShizukuManager {
         return userManager.getUsers(excludeDying);
     }
 
+    /**
+     * Return list only contains one PackageOps
+     */
     public List<PackageOps> getOpsForPackage(String packageName) {
         return getOpsForPackage(packageName, userId);
     }
 
-    public List<PackageOps> getOpsForPackage(String packageName, int userId) {
+    private List<PackageOps> getOpsForPackage(String packageName, int userId) {
         checkShizuku();
         int uid = getPackageUid(packageName, userId);
         List<Parcelable> opsForPackage = appOpsService.getOpsForPackage(uid, packageName, null);

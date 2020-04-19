@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options com.zzzmode.appopsx.common.common to all sub-projects/modules.
+// Top-level build file where you can add configuration options com.zzzmode.appopsx.common to all sub-projects/modules.
 
 buildscript {
     repositories {

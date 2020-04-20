@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -96,17 +97,12 @@ public class Helper {
         }
     }
 
-    private static final SparseIntArray ALWAYS_SHOWN_OP = new SparseIntArray();
     private static final Map<String, PermGroupInfo> PERMS_GROUPS = new HashMap<>();
 
     private static final PermGroupInfo OTHER_PERM_INFO = new PermGroupInfo(null,
             AppOps.CustomPermissionGroup.OTHER, R.drawable.perm_group_other);
 
     static {
-        for (int op : AppOps.ALWAYS_SHOWN_OP) {
-            ALWAYS_SHOWN_OP.put(op, op);
-        }
-
         PERMS_GROUPS.put(AppOps.CustomPermissionGroup.LOCATION, new PermGroupInfo(null, AppOps.CustomPermissionGroup.LOCATION, R.drawable.perm_group_location));
         PERMS_GROUPS.put(AppOps.CustomPermissionGroup.STORAGE, new PermGroupInfo(null, AppOps.CustomPermissionGroup.STORAGE, R.drawable.perm_group_storage));
         PERMS_GROUPS.put(AppOps.CustomPermissionGroup.CALENDAR, new PermGroupInfo(null, AppOps.CustomPermissionGroup.CALENDAR, R.drawable.perm_group_calendar));
@@ -151,6 +147,20 @@ public class Helper {
 
     }};
 
+    public static Set<Integer> getAlwaysShownOps(Context context) {
+        Set<String> savedSelectionStrings = PreferenceManager.getDefaultSharedPreferences(context).getStringSet("always_shown_perms", null);
+        Set<Integer> savedSelections;
+        if (savedSelectionStrings == null) {
+            savedSelections = new HashSet<>(AppOps.ALWAYS_SHOWN_OP);
+        } else {
+            savedSelections = new HashSet<>();
+            try {
+                savedSelectionStrings.forEach(x -> savedSelections.add(Integer.parseInt(x)));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return savedSelections;
+    }
 
     public static void updateShortcuts(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
@@ -440,8 +450,8 @@ public class Helper {
                 for (OpEntry op : opEntries) {
                     existedOps.put(op.getOp(), op.getOp());
                 }
-                for (int i = 0; i < ALWAYS_SHOWN_OP.size(); i++) {
-                    int opInt = ALWAYS_SHOWN_OP.keyAt(i);
+                Set<Integer> alwaysShownOps = getAlwaysShownOps(context);
+                for (Integer opInt : alwaysShownOps) {
                     if (existedOps.indexOfKey(opInt) < 0) {
                         try {
                             int mode = ShizukuManager.getInstance(context).checkOperation(opInt, packageOps.getPackageName());
@@ -587,25 +597,25 @@ public class Helper {
 
 
     public static Single<List<PermissionChildItem>> getPermsUsageStatus(final Context context,
-                                                                               final boolean loadSysapp) {
+                                                                        final boolean loadSysapp) {
         return getAllAppPermissions(context, loadSysapp)
                 .collectInto(new ArrayList<>(), new BiConsumer<List<PermissionChildItem>, AppPermissions>() {
-                            @Override
-                            public void accept(List<PermissionChildItem> permissionChildItems, AppPermissions appPermissions) {
-                                if (appPermissions.opEntries != null) {
-                                    for (OpEntryInfo opEntryInfo : appPermissions.opEntries) {
-                                        //被调用过并且允许的才加入列表
-                                        //超过一个月的记录不显示
-                                        long time = opEntryInfo.opEntry.getTime();
-                                        long now = System.currentTimeMillis();
-                                        if (time > 0 && (now - time < TimeUnit.DAYS.toMillis(30)) && opEntryInfo.isAllowOrForeground()) {
-                                            joinOpEntryInfoInline(opEntryInfo, context);
-                                            permissionChildItems.add(new PermissionChildItem(appPermissions.appInfo, opEntryInfo));
-                                        }
-                                    }
+                    @Override
+                    public void accept(List<PermissionChildItem> permissionChildItems, AppPermissions appPermissions) {
+                        if (appPermissions.opEntries != null) {
+                            for (OpEntryInfo opEntryInfo : appPermissions.opEntries) {
+                                //被调用过并且允许的才加入列表
+                                //超过一个月的记录不显示
+                                long time = opEntryInfo.opEntry.getTime();
+                                long now = System.currentTimeMillis();
+                                if (time > 0 && (now - time < TimeUnit.DAYS.toMillis(30)) && opEntryInfo.isAllowOrForeground()) {
+                                    joinOpEntryInfoInline(opEntryInfo, context);
+                                    permissionChildItems.add(new PermissionChildItem(appPermissions.appInfo, opEntryInfo));
                                 }
                             }
-                        })
+                        }
+                    }
+                })
                 .flattenAsObservable(new Function<ArrayList<PermissionChildItem>, ArrayList<PermissionChildItem>>() {
                     @Override
                     public ArrayList<PermissionChildItem> apply(ArrayList<PermissionChildItem> permissionChildItems) throws Exception {
@@ -626,23 +636,23 @@ public class Helper {
         return getAllAppPermissions(context, loadSysapp, alwaysShownPerm)
                 // Group by opInt
                 .collectInto(new HashMap<>(), new BiConsumer<Map<Integer, List<AppPermissions>>, AppPermissions>() {
-                            @Override
-                            public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
-                                    throws Exception {
-                                if (app.hasPermissions()) {
-                                    for (OpEntryInfo opEntryInfo : app.opEntries) {
-                                        if (opEntryInfo.opEntry != null) {
-                                            List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
-                                            if (appPermissionses == null) {
-                                                appPermissionses = new ArrayList<>();
-                                            }
-                                            appPermissionses.add(app);
-                                            map.put(opEntryInfo.opEntry.getOp(), appPermissionses);
-                                        }
+                    @Override
+                    public void accept(Map<Integer, List<AppPermissions>> map, AppPermissions app)
+                            throws Exception {
+                        if (app.hasPermissions()) {
+                            for (OpEntryInfo opEntryInfo : app.opEntries) {
+                                if (opEntryInfo.opEntry != null) {
+                                    List<AppPermissions> appPermissionses = map.get(opEntryInfo.opEntry.getOp());
+                                    if (appPermissionses == null) {
+                                        appPermissionses = new ArrayList<>();
                                     }
+                                    appPermissionses.add(app);
+                                    map.put(opEntryInfo.opEntry.getOp(), appPermissionses);
                                 }
                             }
-                        })
+                        }
+                    }
+                })
                 .map(new Function<Map<Integer, List<AppPermissions>>, List<PermissionGroup>>() {
                     @Override
                     public List<PermissionGroup> apply(Map<Integer, List<AppPermissions>> map)
@@ -797,46 +807,46 @@ public class Helper {
                 });
     }
 
-    public static Single<SparseIntArray> autoDisable(final Context context, String pkg) {
-
-        return SingleJust.just(pkg).map(new Function<String, SparseIntArray>() {
-            @Override
-            public SparseIntArray apply(String s) throws Exception {
-
-                List<OpEntryInfo> opEntryInfos = getAppPermission(context, s).blockingGet();
-
-                SparseIntArray canIgnored = new SparseIntArray();//可以忽略的op
-                if (opEntryInfos != null && !opEntryInfos.isEmpty()) {
-                    for (OpEntryInfo opEntryInfo : opEntryInfos) {
-                        int op = opEntryInfo.opEntry.getOp();
-                        canIgnored.put(op, op);
-                    }
-                }
-
-                SparseIntArray list = new SparseIntArray();
-                SparseIntArray allowedIgnoreOps = getAllowedIgnoreOps(context);
-
-                if (allowedIgnoreOps != null && allowedIgnoreOps.size() > 0) {
-                    int size = allowedIgnoreOps.size();
-                    for (int i = 0; i < size; i++) {
-                        int op = allowedIgnoreOps.keyAt(i);
-                        if (canIgnored.indexOfKey(op) >= 0 || ALWAYS_SHOWN_OP.indexOfKey(op) >= 0) {
-                            //
-                            list.put(op, op);
-                        }
-                    }
-                }
-                for (int i = 0; i < list.size(); i++) {
-                    try {
-                        int op = list.keyAt(i);
-                        ShizukuManager.getInstance(context).setOpsMode(s, op, AppOpsMode.MODE_IGNORED);
-                    } catch (Exception ee) {
-                        ee.printStackTrace();
-                    }
-                }
-                return list;
-            }
-        });
+//    public static Single<SparseIntArray> autoDisable(final Context context, String pkg) {
+//
+//        return SingleJust.just(pkg).map(new Function<String, SparseIntArray>() {
+//            @Override
+//            public SparseIntArray apply(String s) throws Exception {
+//
+//                List<OpEntryInfo> opEntryInfos = getAppPermission(context, s).blockingGet();
+//
+//                SparseIntArray canIgnored = new SparseIntArray();//可以忽略的op
+//                if (opEntryInfos != null && !opEntryInfos.isEmpty()) {
+//                    for (OpEntryInfo opEntryInfo : opEntryInfos) {
+//                        int op = opEntryInfo.opEntry.getOp();
+//                        canIgnored.put(op, op);
+//                    }
+//                }
+//
+//                SparseIntArray list = new SparseIntArray();
+//                SparseIntArray allowedIgnoreOps = getAllowedIgnoreOps(context);
+//
+//                if (allowedIgnoreOps != null && allowedIgnoreOps.size() > 0) {
+//                    int size = allowedIgnoreOps.size();
+//                    for (int i = 0; i < size; i++) {
+//                        int op = allowedIgnoreOps.keyAt(i);
+//                        if (canIgnored.indexOfKey(op) >= 0 || ALWAYS_SHOWN_OP.indexOfKey(op) >= 0) {
+//                            //
+//                            list.put(op, op);
+//                        }
+//                    }
+//                }
+//                for (int i = 0; i < list.size(); i++) {
+//                    try {
+//                        int op = list.keyAt(i);
+//                        ShizukuManager.getInstance(context).setOpsMode(s, op, AppOpsMode.MODE_IGNORED);
+//                    } catch (Exception ee) {
+//                        ee.printStackTrace();
+//                    }
+//                }
+//                return list;
+//            }
+//        });
 //        return SingleJust.create(new SingleOnSubscribe<SparseIntArray>() {
 //            @Override
 //            public void subscribe(SingleEmitter<SparseIntArray> e) throws Exception {
@@ -875,45 +885,45 @@ public class Helper {
 //                e.onSuccess(list);
 //            }
 //        });
-    }
+//    }
 
 
-    private static final SparseArray<OpEntryInfo> sOpEntryInfo = new SparseArray<>();
-    private static final SparseIntArray sAllOps = new SparseIntArray();
-    private static final List<OpEntryInfo> sOpEntryInfoList = new ArrayList<>();
-
-    public static List<OpEntryInfo> getLocalOpEntryInfos(Context context) {
-        if (sOpEntryInfoList.isEmpty()) {
-            List<Integer> sOpToSwitch = AppOps.sOpToSwitch;
-            List<String> sOpNames = AppOps.sOpNames;
-            List<String> sOpPerms = AppOps.sOpPerms;
-            int len = sOpPerms.size();
-            PackageManager pm = context.getPackageManager();
-            for (int i = 0; i < len; i++) {
-                OpEntry entry = new OpEntry(sOpToSwitch.get(i), AppOpsMode.MODE_ALLOWED, 0, 0, 0, 0, null);
-                OpEntryInfo opEntryInfo = new OpEntryInfo(entry);
-                opEntryInfo.opName = sOpNames.get(i);
-                try {
-                    PermissionInfo permissionInfo = pm.getPermissionInfo(sOpPerms.get(i), 0);
-                    opEntryInfo.opPermsLab = String.valueOf(permissionInfo.loadLabel(pm));
-                    opEntryInfo.opPermsDesc = String.valueOf(permissionInfo.loadDescription(pm));
-                } catch (PackageManager.NameNotFoundException e) {
-                    //ignore
-                    Integer resId = sPermI18N.get(opEntryInfo.opName);
-                    if (resId != null) {
-                        opEntryInfo.opPermsLab = context.getString(resId);
-                        opEntryInfo.opPermsDesc = opEntryInfo.opName;
-                    } else {
-                        opEntryInfo.opPermsLab = opEntryInfo.opName;
-                    }
-                }
-                sOpEntryInfo.put(entry.getOp(), opEntryInfo);
-                sAllOps.put(entry.getOp(), entry.getOp());
-                sOpEntryInfoList.add(opEntryInfo);
-            }
-        }
-        return new ArrayList<OpEntryInfo>(sOpEntryInfoList);
-    }
+//    private static final SparseArray<OpEntryInfo> sOpEntryInfo = new SparseArray<>();
+//    private static final SparseIntArray sAllOps = new SparseIntArray();
+//    private static final List<OpEntryInfo> sOpEntryInfoList = new ArrayList<>();
+//
+//    public static List<OpEntryInfo> getLocalOpEntryInfos(Context context) {
+//        if (sOpEntryInfoList.isEmpty()) {
+//            List<Integer> sOpToSwitch = AppOps.sOpToSwitch;
+//            List<String> sOpNames = AppOps.sOpNames;
+//            List<String> sOpPerms = AppOps.sOpPerms;
+//            int len = sOpPerms.size();
+//            PackageManager pm = context.getPackageManager();
+//            for (int i = 0; i < len; i++) {
+//                OpEntry entry = new OpEntry(sOpToSwitch.get(i), AppOpsMode.MODE_ALLOWED, 0, 0, 0, 0, null);
+//                OpEntryInfo opEntryInfo = new OpEntryInfo(entry);
+//                opEntryInfo.opName = sOpNames.get(i);
+//                try {
+//                    PermissionInfo permissionInfo = pm.getPermissionInfo(sOpPerms.get(i), 0);
+//                    opEntryInfo.opPermsLab = String.valueOf(permissionInfo.loadLabel(pm));
+//                    opEntryInfo.opPermsDesc = String.valueOf(permissionInfo.loadDescription(pm));
+//                } catch (PackageManager.NameNotFoundException e) {
+//                    //ignore
+//                    Integer resId = sPermI18N.get(opEntryInfo.opName);
+//                    if (resId != null) {
+//                        opEntryInfo.opPermsLab = context.getString(resId);
+//                        opEntryInfo.opPermsDesc = opEntryInfo.opName;
+//                    } else {
+//                        opEntryInfo.opPermsLab = opEntryInfo.opName;
+//                    }
+//                }
+//                sOpEntryInfo.put(entry.getOp(), opEntryInfo);
+//                sAllOps.put(entry.getOp(), entry.getOp());
+//                sOpEntryInfoList.add(opEntryInfo);
+//            }
+//        }
+//        return new ArrayList<OpEntryInfo>(sOpEntryInfoList);
+//    }
 
 
     public static SparseIntArray getAllowedIgnoreOps(Context context) {
@@ -988,19 +998,19 @@ public class Helper {
 
         return Observable.fromIterable(list)
                 .collectInto(new List[2], new BiConsumer<List[], OpEntryInfo>() {
-                            @Override
-                            public void accept(List[] lists, OpEntryInfo opEntryInfo) throws Exception {
-                                if (opEntryInfo != null) {
-                                    int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
-                                    List<OpEntryInfo> list = lists[idx];
-                                    if (list == null) {
-                                        list = new ArrayList<OpEntryInfo>();
-                                        lists[idx] = list;
-                                    }
-                                    list.add(opEntryInfo);
-                                }
+                    @Override
+                    public void accept(List[] lists, OpEntryInfo opEntryInfo) throws Exception {
+                        if (opEntryInfo != null) {
+                            int idx = opEntryInfo.mode == AppOpsMode.MODE_ALLOWED ? 0 : 1;
+                            List<OpEntryInfo> list = lists[idx];
+                            if (list == null) {
+                                list = new ArrayList<OpEntryInfo>();
+                                lists[idx] = list;
                             }
-                        })
+                            list.add(opEntryInfo);
+                        }
+                    }
+                })
                 .map(new Function<List[], List<OpEntryInfo>>() {
                     @Override
                     public List<OpEntryInfo> apply(@NonNull List[] lists) throws Exception {

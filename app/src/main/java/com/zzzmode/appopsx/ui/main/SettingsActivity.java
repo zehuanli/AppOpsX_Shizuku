@@ -10,8 +10,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -26,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import com.zzzmode.appopsx.BuildConfig;
 import com.zzzmode.appopsx.R;
+import com.zzzmode.appopsx.constraint.AppOps;
 import com.zzzmode.appopsx.ui.BaseActivity;
 import com.zzzmode.appopsx.ui.core.Helper;
 import com.zzzmode.appopsx.ui.core.LangHelper;
@@ -41,7 +45,14 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.internal.operators.single.SingleJust;
 import io.reactivex.schedulers.Schedulers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by zl on 2017/1/16.
@@ -89,10 +100,7 @@ public class SettingsActivity extends BaseActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.settings, rootKey);
 
-            findPreference("ignore_premission").setOnPreferenceClickListener(this);
-            findPreference("show_sysapp").setOnPreferenceClickListener(this);
-
-            findPreference("project").setOnPreferenceClickListener(this);
+//            findPreference("ignore_premission").setOnPreferenceClickListener(this);
 
             findPreference("opensource_licenses").setOnPreferenceClickListener(this);
             findPreference("help").setOnPreferenceClickListener(this);
@@ -132,11 +140,20 @@ public class SettingsActivity extends BaseActivity {
                         }
                     });
 
-            findPreference("ignore_premission_templete")
+//            findPreference("ignore_premission_templete")
+//                    .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+//                        @Override
+//                        public boolean onPreferenceClick(Preference preference) {
+//                            showPremissionTemplete();
+//                            return true;
+//                        }
+//                    });
+
+            findPreference("key_always_shown_perms_list")
                     .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                         @Override
                         public boolean onPreferenceClick(Preference preference) {
-                            showPremissionTemplete();
+                            showAlwaysShownPermsList();
                             return true;
                         }
                     });
@@ -208,6 +225,85 @@ public class SettingsActivity extends BaseActivity {
             }
         }
 
+        private void showAlwaysShownPermsList() {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(R.string.menu_always_shown_perms_list);
+            Set<Integer> allValidOps = new HashSet<>(AppOps.sOpToSwitch);
+            Set<Integer> savedSelections = Helper.getAlwaysShownOps(getActivity());
+
+            int size = allValidOps.size();
+            String[] opItems = new String[size];
+            Map<Integer, Integer> opToIndex = new HashMap<>(size);
+
+            // Order the allValidOps by the order of custom permission groups, which is defined in AppOps.PERMISSION_GROUP_ORDER
+            Map<String, List<Integer>> opToGroup = new HashMap<>();
+            for (Integer op : allValidOps) {
+                String group = AppOps.OP_CUSTOM_PERMISSION_GROUP_MAP.get(op);
+                List<Integer> ops = opToGroup.getOrDefault(group, new ArrayList<>());
+                ops.add(op);
+                opToGroup.put(group, ops);
+            }
+            List<Integer> orderedOps = new ArrayList<>();
+            for (String group : AppOps.PERMISSION_GROUP_ORDER) {
+                orderedOps.addAll(opToGroup.get(group));
+            }
+
+            // Put names of the ops in a string array; create a map to note the op-index mapping
+            for (int i = 0; i < size; i++) {
+                opItems[i] = AppOps.sOpNames.get(orderedOps.get(i)).toLowerCase();
+                opToIndex.put(orderedOps.get(i), i);
+            }
+
+            boolean[] selected = new boolean[size];
+            for (Integer op : savedSelections) {
+                selected[opToIndex.get(op)] = true;
+            }
+
+            builder.setMultiChoiceItems(opItems, selected, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                    selected[which] = isChecked;
+                }
+            });
+            // Reset to default button
+            builder.setNeutralButton(R.string.button_default, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    new AlertDialog.Builder(getActivity())
+                            .setMessage(R.string.button_default_confirm)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Set<String> defaultSelections = new HashSet<>(AppOps.ALWAYS_SHOWN_OP.size());
+                                    for (Integer op : AppOps.ALWAYS_SHOWN_OP) {
+                                        defaultSelections.add(op.toString());
+                                    }
+                                    sharedPreferences.edit().putStringSet("always_shown_perms", defaultSelections).apply();
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .show();
+
+                }
+            });
+            builder.setNegativeButton(android.R.string.cancel, null);
+            builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Set<String> selectionsToSave = new HashSet<>(size);
+                    for (int i = 0; i < size; i++) {
+                        if (selected[i]) {
+                            selectionsToSave.add(orderedOps.get(i).toString());
+                        }
+                    }
+                    sharedPreferences.edit().putStringSet("always_shown_perms", selectionsToSave).apply();
+                }
+            });
+            builder.show();
+        }
+
+        /** Auto permission functions
         private void showPremissionTemplete() {
 
             AlertDialog.Builder builder =
@@ -280,6 +376,7 @@ public class SettingsActivity extends BaseActivity {
                 sp.edit().putString("auto_perm_templete", s).apply();
             }
         }
+        */
 
         private void showTextDialog(int title, String text) {
             AlertDialog.Builder builder =

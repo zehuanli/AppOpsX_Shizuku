@@ -73,11 +73,7 @@ public class LangHelper {
 
 
   public static Context attachBaseContext(Context context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      return updateResources(context);
-    } else {
-      return context;
-    }
+    return updateResources(context);
   }
 
 

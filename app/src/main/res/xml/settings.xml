@@ -3,34 +3,39 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   >
-  <androidx.preference.PreferenceCategory
-    android:key="normal"
-    android:title="@string/normal">
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="true"
-      android:key="ignore_premission"
-      android:title="@string/auto_ignore_premission"
-      android:summary="@string/auto_ignore_summary"/>
+<!--  <androidx.preference.PreferenceCategory-->
+<!--    android:key="normal"-->
+<!--    android:title="@string/normal">-->
+<!--    <androidx.preference.CheckBoxPreference-->
+<!--      android:defaultValue="true"-->
+<!--      android:key="ignore_premission"-->
+<!--      android:title="@string/auto_ignore_premission"-->
+<!--      android:summary="@string/auto_ignore_summary"/>-->
 
-    <androidx.preference.Preference
-      android:key="ignore_premission_templete"
-      android:title="@string/auto_ignore_permission_title"
-      android:summary="@string/auto_ignore_permission_temp_summary"/>
-  </androidx.preference.PreferenceCategory>
+<!--    <androidx.preference.Preference-->
+<!--      android:key="ignore_premission_templete"-->
+<!--      android:title="@string/auto_ignore_permission_title"-->
+<!--      android:summary="@string/auto_ignore_permission_temp_summary"/>-->
+<!--  </androidx.preference.PreferenceCategory>-->
 
   <androidx.preference.PreferenceCategory
     android:key="app_ui"
     android:title="@string/app_ui">
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="false"
-      android:key="show_sysapp"
-      android:title="@string/show_sys_apps"
-      android:summary="@string/show_sys_apps_summary"/>
-    <androidx.preference.CheckBoxPreference
-      android:defaultValue="false"
-      android:key="key_always_shown_perms"
-      android:title="@string/menu_always_shown_permission"
-      android:summary="@string/menu_always_shown_permission_summary" />
+    <androidx.preference.SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="show_sysapp"
+        android:summary="@string/show_sys_apps_summary"
+        android:title="@string/show_sys_apps" />
+
+    <androidx.preference.SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="key_always_shown_perms"
+        android:summary="@string/menu_always_shown_permission_summary"
+        android:title="@string/menu_always_shown_permission" />
+
+    <androidx.preference.Preference
+        android:key="key_always_shown_perms_list"
+        android:title="@string/menu_always_shown_perms_list" />
 
     <androidx.preference.Preference
       android:key="pref_app_sort_type"

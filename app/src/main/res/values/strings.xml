@@ -93,4 +93,7 @@
   <string name="action_users">Users</string>
   <string name="menu_always_shown_permission_summary">Display \"always-shown permissions\" in the permission list</string>
     <string name="perm_restore_success">Restore complete</string>
+    <string name="menu_always_shown_perms_list">Edit always-shown permissions</string>
+    <string name="button_default">Reset to default</string>
+    <string name="button_default_confirm">Reset always-shown permissions to default?</string>
 </resources>

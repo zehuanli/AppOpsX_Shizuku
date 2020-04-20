@@ -35,7 +35,7 @@ class PermPresenter {
 
     private boolean loadSuccess = false;
 
-    private boolean autoDisabled = true;
+//    private boolean autoDisabled = true;
 
     private boolean sortByMode = false;
 
@@ -65,16 +65,16 @@ class PermPresenter {
                     @Override
                     public void onSuccess(List<OpEntryInfo> opEntryInfos) {
                         if (opEntryInfos != null && !opEntryInfos.isEmpty()) {
-                            if (autoDisabled) {
-                                if (sortByMode) {
-                                    reSortByModePerms(opEntryInfos);
-                                } else {
-                                    mView.showProgress(false);
-                                    mView.showPerms(opEntryInfos);
-                                }
+//                            if (autoDisabled) {
+                            if (sortByMode) {
+                                reSortByModePerms(opEntryInfos);
                             } else {
-                                autoDisable();
+                                mView.showProgress(false);
+                                mView.showPerms(opEntryInfos);
                             }
+//                            } else {
+//                                autoDisable();
+//                            }
                         } else {
                             mView.showError(context.getString(R.string.no_perms));
                         }
@@ -97,32 +97,32 @@ class PermPresenter {
     }
 
     void setAutoDisabled(boolean autoDisabled) {
-        this.autoDisabled = autoDisabled;
+//        this.autoDisabled = autoDisabled;
     }
 
-    void autoDisable() {
-        Helper.autoDisable(context, appInfo.packageName)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleObserver<SparseIntArray>() {
-
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                    }
-
-                    @Override
-                    public void onSuccess(SparseIntArray value) {
-                        autoDisabled = true;
-                        load();
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        autoDisabled = true;
-                        load();
-                    }
-                });
-    }
+//    void autoDisable() {
+//        Helper.autoDisable(context, appInfo.packageName)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new SingleObserver<SparseIntArray>() {
+//
+//                    @Override
+//                    public void onSubscribe(Disposable d) {
+//                    }
+//
+//                    @Override
+//                    public void onSuccess(SparseIntArray value) {
+//                        autoDisabled = true;
+//                        load();
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable e) {
+//                        autoDisabled = true;
+//                        load();
+//                    }
+//                });
+//    }
 
 
     void reSortByModePerms(List<OpEntryInfo> list) {

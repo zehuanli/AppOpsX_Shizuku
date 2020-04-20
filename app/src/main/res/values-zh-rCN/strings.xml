@@ -121,6 +121,9 @@
 
   <string name="show_ignored_app">显示已忽略的应用</string>
   <string name="action_users">用户</string>
-    <string name="menu_always_shown_permission_summary">在权限列表中展示所有“始终显示的权限\"</string>
+    <string name="menu_always_shown_permission_summary">在权限列表中展示所有\"始终显示的权限\"</string>
   <string name="perm_restore_success">恢复成功</string>
+    <string name="menu_always_shown_perms_list">编辑\"始终显示的权限\"列表</string>
+    <string name="button_default">恢复默认</string>
+    <string name="button_default_confirm">恢复\"始终显示的权限\"为默认值？</string>
 </resources>

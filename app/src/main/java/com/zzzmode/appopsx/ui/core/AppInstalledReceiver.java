@@ -73,39 +73,39 @@ public class AppInstalledReceiver extends BroadcastReceiver {
         });
   }
 
-  private void disable(final Context context, final String pkgName) {
-    Helper.autoDisable(context, pkgName)
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new SingleObserver<SparseIntArray>() {
-
-          @Override
-          public void onSubscribe(Disposable d) {
-
-          }
-
-          @Override
-          public void onSuccess(SparseIntArray value) {
-            try {
-              PackageInfo packageInfo = context.getPackageManager().getPackageInfo(pkgName, 0);
-              String label = BidiFormatter.getInstance()
-                  .unicodeWrap(packageInfo.applicationInfo.loadLabel(context.getPackageManager()))
-                  .toString();
-
-              Toast
-                  .makeText(context, context.getString(R.string.disable_toast, label, value.size()),
-                      Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          }
-
-          @Override
-          public void onError(Throwable e) {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-          }
-
-        });
-
-  }
+//  private void disable(final Context context, final String pkgName) {
+//    Helper.autoDisable(context, pkgName)
+//        .subscribeOn(Schedulers.io())
+//        .observeOn(AndroidSchedulers.mainThread())
+//        .subscribe(new SingleObserver<SparseIntArray>() {
+//
+//          @Override
+//          public void onSubscribe(Disposable d) {
+//
+//          }
+//
+//          @Override
+//          public void onSuccess(SparseIntArray value) {
+//            try {
+//              PackageInfo packageInfo = context.getPackageManager().getPackageInfo(pkgName, 0);
+//              String label = BidiFormatter.getInstance()
+//                  .unicodeWrap(packageInfo.applicationInfo.loadLabel(context.getPackageManager()))
+//                  .toString();
+//
+//              Toast
+//                  .makeText(context, context.getString(R.string.disable_toast, label, value.size()),
+//                      Toast.LENGTH_LONG).show();
+//            } catch (Exception e) {
+//              e.printStackTrace();
+//            }
+//          }
+//
+//          @Override
+//          public void onError(Throwable e) {
+//            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+//          }
+//
+//        });
+//
+//  }
 }

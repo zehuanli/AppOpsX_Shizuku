@@ -1,55 +1,55 @@
 package com.zzzmode.appopsx.ui.core;
 
 import android.content.pm.UserInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Users {
 
-  private static Users sUsers;
+    private static Users sUsers;
 
-  public static Users getInstance(){
-    if(sUsers == null){
-      synchronized (Users.class){
-        if(sUsers == null){
-          sUsers = new Users();
+    public static Users getInstance() {
+        if (sUsers == null) {
+            synchronized (Users.class) {
+                if (sUsers == null) {
+                    sUsers = new Users();
+                }
+            }
         }
-      }
+        return sUsers;
     }
-    return sUsers;
-  }
 
 
-  private List<UserInfo> userInfos;
+    private List<UserInfo> userInfos;
 
-  private UserInfo currentUser;
+    private UserInfo currentUser;
 
-  public List<UserInfo> getUsers(){
-    return userInfos;
-  }
+    public List<UserInfo> getUsers() {
+        return userInfos;
+    }
 
-  public boolean isLoaded(){
-    return userInfos != null;
-  }
+    public boolean isLoaded() {
+        return userInfos != null;
+    }
 
-  public void updateUsers(List<UserInfo> users){
-    userInfos = new ArrayList<>(users);
-  }
-
-
-  public void setCurrentLoadUser(UserInfo user){
-    this.currentUser = user;
-  }
+    public void updateUsers(List<UserInfo> users) {
+        userInfos = new ArrayList<>(users);
+    }
 
 
-  public int getCurrentUid(){
-    return currentUser != null?currentUser.id:0;
-  }
+    public void setCurrentLoadUser(UserInfo user) {
+        this.currentUser = user;
+    }
 
-  public UserInfo getCurrentUser(){
-    return currentUser;
-  }
 
+    public int getCurrentUid() {
+        return currentUser != null ? currentUser.id : 0;
+    }
+
+    public UserInfo getCurrentUser() {
+        return currentUser;
+    }
 
 
 }

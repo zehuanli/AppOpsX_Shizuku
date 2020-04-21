@@ -5,6 +5,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.os.Bundle;
@@ -133,19 +134,21 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
                         finishAndRemoveTask();
                     }
                 });
-                builder.show();
+                AlertDialog alertDialog = builder.create();
+                alertDialog.setCancelable(false);
+                alertDialog.setCanceledOnTouchOutside(false);
+                alertDialog.show();
             }
         }
     }
 
     private void init() {
-        loadData(true);
         loadUsers();
+//        loadData(true);
     }
 
     private void loadData(final boolean isFirst) {
-        boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                .getBoolean("show_sysapp", false);
+        boolean showSysApp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("show_sysapp", false);
         Helper.getInstalledApps(getApplicationContext(), showSysApp)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -197,7 +200,8 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
 
 
     private void loadUsers() {
-        Helper.getUsers(getApplicationContext(), true).subscribeOn(Schedulers.io())
+        Helper.getUsers(getApplicationContext(), true)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new SingleObserver<List<UserInfo>>() {
                     @Override
@@ -207,14 +211,23 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
 
                     @Override
                     public void onSuccess(List<UserInfo> userInfos) {
-
                         Users.getInstance().updateUsers(userInfos);
+                        int selectedUserId = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getInt("user_id", 0);
+                        for (UserInfo userInfo : Users.getInstance().getUsers()) {
+                            if (userInfo.id == selectedUserId) {
+                                switchUser(userInfo);
+                                invalidateOptionsMenu();
+                                return;
+                            }
+                        }
+                        loadData(true);
                         invalidateOptionsMenu();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        loadData(true);
+                        invalidateOptionsMenu();
                     }
                 });
     }
@@ -254,7 +267,6 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
         final Users users = Users.getInstance();
         if (users.isLoaded() && !users.getUsers().isEmpty()) {
             SubMenu userSub = menu.addSubMenu(R.id.action_users, Menu.NONE, Menu.NONE, R.string.action_users);
-
             userSub.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
             OnMenuItemClickListener menuItemClickListener = new OnMenuItemClickListener() {
                 @Override
@@ -263,11 +275,10 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
                     List<UserInfo> userInfos = Users.getInstance().getUsers();
                     for (UserInfo user : userInfos) {
                         if (user.id == item.getItemId() && users.getCurrentUid() != user.id) {
-                            onSwitchUser(user);
+                            switchUser(user);
                             break;
                         }
                     }
-
                     return true;
                 }
             };
@@ -357,12 +368,13 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
     }
 
 
-    private void onSwitchUser(UserInfo user) {
+    private void switchUser(UserInfo user) {
         getSupportActionBar().setSubtitle(user.name);
         Users.getInstance().setCurrentLoadUser(user);
 
         ShizukuManager.getInstance(getApplicationContext()).setUserHandleId(user.id);
         LocalImageLoader.clear();
         loadData(true);
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("user_id", user.id).apply();
     }
 }

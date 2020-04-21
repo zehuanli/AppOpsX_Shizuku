@@ -280,8 +280,8 @@ public class Helper {
                 .create(new SingleOnSubscribe<List<PackageInfo>>() {
                     @Override
                     public void subscribe(final SingleEmitter<List<PackageInfo>> e) throws Exception {
-                        int uid = Users.getInstance().getCurrentUid();
-                        e.onSuccess(ShizukuManager.getInstance(context).getInstalledPackages(0, uid));
+                        int userId = Users.getInstance().getCurrentUid();
+                        e.onSuccess(ShizukuManager.getInstance(context).getInstalledPackages(0, userId));
 
                     }
                 }).flattenAsObservable(new Function<List<PackageInfo>, Iterable<PackageInfo>>() {

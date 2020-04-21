@@ -12,9 +12,11 @@ import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.app.IAppOpsService;
+import com.zzzmode.appopsx.R;
 import com.zzzmode.appopsx.common.OpEntry;
 import com.zzzmode.appopsx.common.PackageOps;
 import com.zzzmode.appopsx.common.ReflectUtils;
@@ -55,20 +57,28 @@ public class ShizukuManager {
         mContext = context;
         userId = Process.myUid() / 100000;
         if (!ShizukuService.pingBinder()) {
-            Toast.makeText(mContext, "WARNING: Shizuku server not running", Toast.LENGTH_LONG).show();
+            showWarning(mContext.getString(R.string.shizuku_warning_not_running));
         } else if (mContext.checkSelfPermission(ShizukuApiConstants.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(mContext, "WARNING: Shizuku permission not granted", Toast.LENGTH_LONG).show();
+            showWarning(mContext.getString(R.string.shizuku_warning_no_permission));
         } else {
             initializeSystemService();
         }
     }
 
+    private void showWarning(String text) {
+        try {
+            Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
+            Log.w(TAG, text);
+        } catch (Exception ignored) {
+        }
+    }
+
     private void checkShizuku() {
         if (!ShizukuService.pingBinder()) {
-            throw new RuntimeException("Shizuku server not running");
+            throw new RuntimeException(mContext.getString(R.string.shizuku_warning_not_running));
         }
         if (mContext.checkSelfPermission(ShizukuApiConstants.PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            throw new RuntimeException("Shizuku permission not granted");
+            throw new RuntimeException(mContext.getString(R.string.shizuku_warning_no_permission));
         }
         if (!initialized) {
             initializeSystemService();
@@ -105,9 +115,9 @@ public class ShizukuManager {
         return packageManager.getPermissionInfo(permissionName, packageName, flags);
     }
 
-    public List<PackageInfo> getInstalledPackages(int flags, int uid) throws RemoteException {
+    public List<PackageInfo> getInstalledPackages(int flags, int userId) throws RemoteException {
         checkShizuku();
-        return packageManager.getInstalledPackages(flags, uid).getList();
+        return packageManager.getInstalledPackages(flags, userId).getList();
     }
 
     public List<UserInfo> getUsers(boolean excludeDying) {

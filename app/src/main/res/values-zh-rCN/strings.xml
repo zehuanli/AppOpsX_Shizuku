@@ -126,4 +126,6 @@
     <string name="menu_always_shown_perms_list">编辑\"始终显示的权限\"列表</string>
     <string name="button_default">恢复默认</string>
     <string name="button_default_confirm">恢复\"始终显示的权限\"为默认值？</string>
+    <string name="shizuku_warning_not_running">Shizuku服务未运行</string>
+  <string name="shizuku_warning_no_permission">未授予Shizuku权限</string>
 </resources>
